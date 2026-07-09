@@ -1,0 +1,24 @@
+/* Shared reference styles for Cost Of Trips store screenshot mockups.
+   Not linked at runtime — each screenshot HTML inlines this block so it
+   can be captured standalone by the preview tool. Keep both in sync. */
+:root {
+  --primary: #3B5CA8;
+  --gold: #F2B705;
+
+  --bg-light: #FFFBFE;
+  --surface-light: #FFFFFF;
+  --card-light: #F7F2FA;
+  --ink-light: #1B1B1F;
+  --muted-light: #49454F;
+  --primary-container-light: #DCE1FF;
+  --on-primary-container-light: #001947;
+  --outline-light: #79747E;
+
+  --bg-dark: #121318;
+  --surface-dark: #121318;
+  --card-dark: #1E2022;
+  --ink-dark: #E4E2E6;
+  --muted-dark: #C6C5D0;
+  --primary-container-dark: #24427B;
+  --on-primary-container-dark: #DCE1FF;
+}

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<style>
+  :root {
+    --gold: #F2B705;
+    --bg-dark: #121318;
+    --surface-dark: #121318;
+    --card-dark: #1D2024;
+    --ink-dark: #E4E2E6;
+    --muted-dark: #A8A6B0;
+    --primary-container-dark: #24427B;
+    --on-primary-container-dark: #DCE1FF;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #000; }
+  .phone {
+    position: relative;
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg-dark);
+    color: var(--ink-dark);
+  }
+  .status-bar {
+    height: 72px;
+    background: var(--surface-dark);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 48px;
+    font-size: 30px;
+    font-weight: 600;
+  }
+  .status-icons { display: flex; gap: 16px; align-items: center; }
+  .status-icons .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--ink-dark); }
+  .status-icons .bar { width: 44px; height: 22px; border: 3px solid var(--ink-dark); border-radius: 4px; position: relative; }
+  .status-icons .bar::after { content: ""; position: absolute; top: 3px; left: 3px; bottom: 3px; width: 30px; background: var(--ink-dark); border-radius: 2px; }
+  .top-bar {
+    height: 168px;
+    background: var(--surface-dark);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+  }
+  .top-bar h1 { font-size: 46px; font-weight: 600; }
+  .icon-btn {
+    width: 88px; height: 88px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 44px;
+  }
+  .content { padding: 24px 32px; display: flex; flex-direction: column; gap: 28px; }
+  .card {
+    background: var(--card-dark);
+    border-radius: 28px;
+    padding: 36px 40px;
+  }
+  .card .name { font-size: 40px; font-weight: 700; margin-bottom: 8px; }
+  .card .dest { font-size: 32px; color: var(--muted-dark); margin-bottom: 20px; }
+  .card .total { font-size: 36px; font-weight: 600; }
+  .fab {
+    position: absolute;
+    right: 56px;
+    bottom: 90px;
+    width: 168px; height: 168px;
+    border-radius: 48px;
+    background: var(--primary-container-dark);
+    color: var(--on-primary-container-dark);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 76px;
+    font-weight: 300;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+  }
+  .nav-pill {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 60px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .nav-pill .bar { width: 280px; height: 10px; border-radius: 6px; background: var(--ink-dark); opacity: 0.5; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="status-icons">
+      <div class="bar"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+  </div>
+  <div class="top-bar">
+    <h1>Chuyến đi của tôi</h1>
+    <div class="icon-btn">⚙</div>
+  </div>
+  <div class="content">
+    <div class="card">
+      <div class="name">Đà Lạt Xuân 2026</div>
+      <div class="dest">Đà Lạt, Lâm Đồng</div>
+      <div class="total">Tổng: 4.250.000 ₫</div>
+    </div>
+    <div class="card">
+      <div class="name">Phú Quốc Hè</div>
+      <div class="dest">Phú Quốc, Kiên Giang</div>
+      <div class="total">Tổng: 8.900.000 ₫</div>
+    </div>
+    <div class="card">
+      <div class="name">Công tác Hà Nội</div>
+      <div class="dest">Hà Nội</div>
+      <div class="total">Tổng: 2.150.000 ₫</div>
+    </div>
+  </div>
+  <div class="fab">+</div>
+  <div class="nav-pill"><div class="bar"></div></div>
+</div>
+</body>
+</html>

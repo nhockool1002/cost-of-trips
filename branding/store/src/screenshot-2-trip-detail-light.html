@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<style>
+  :root {
+    --gold: #F2B705;
+    --bg-light: #FFFBFE;
+    --surface-light: #FFFFFF;
+    --card-light: #F7F2FA;
+    --ink-light: #1B1B1F;
+    --muted-light: #49454F;
+    --primary-container-light: #DCE1FF;
+    --on-primary-container-light: #001947;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #000; }
+  .phone {
+    position: relative;
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg-light);
+    color: var(--ink-light);
+  }
+  .status-bar {
+    height: 72px;
+    background: var(--surface-light);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 48px;
+    font-size: 30px;
+    font-weight: 600;
+  }
+  .status-icons { display: flex; gap: 16px; align-items: center; }
+  .status-icons .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--ink-light); }
+  .status-icons .bar { width: 44px; height: 22px; border: 3px solid var(--ink-light); border-radius: 4px; position: relative; }
+  .status-icons .bar::after { content: ""; position: absolute; top: 3px; left: 3px; bottom: 3px; width: 30px; background: var(--ink-light); border-radius: 2px; }
+  .top-bar {
+    height: 168px;
+    background: var(--surface-light);
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    padding: 0 24px;
+  }
+  .top-bar h1 { font-size: 42px; font-weight: 600; }
+  .icon-btn {
+    width: 88px; height: 88px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 44px;
+  }
+  .total-line {
+    padding: 24px 48px 8px;
+    font-size: 40px;
+    font-weight: 600;
+  }
+  .content { padding: 16px 32px; display: flex; flex-direction: column; gap: 20px; }
+  .expense {
+    background: var(--card-light);
+    border-radius: 24px;
+    padding: 32px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .expense .left .cat { font-size: 36px; font-weight: 700; margin-bottom: 8px; }
+  .expense .left .note { font-size: 28px; color: var(--muted-light); }
+  .expense .right { font-size: 34px; font-weight: 600; display: flex; align-items: center; gap: 24px; }
+  .expense .right .trash { opacity: 0.55; }
+  .fab {
+    position: absolute;
+    right: 56px;
+    bottom: 90px;
+    width: 168px; height: 168px;
+    border-radius: 48px;
+    background: var(--primary-container-light);
+    color: var(--on-primary-container-light);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 76px;
+    font-weight: 300;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+  }
+  .nav-pill {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 60px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .nav-pill .bar { width: 280px; height: 10px; border-radius: 6px; background: var(--ink-light); opacity: 0.5; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="status-icons">
+      <div class="bar"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+  </div>
+  <div class="top-bar">
+    <div class="icon-btn">←</div>
+    <h1>Đà Lạt Xuân 2026</h1>
+  </div>
+  <div class="total-line">Tổng chi phí: 4.250.000 ₫</div>
+  <div class="content">
+    <div class="expense">
+      <div class="left">
+        <div class="cat">Di chuyển</div>
+        <div class="note">Vé xe khách</div>
+      </div>
+      <div class="right">850.000 ₫ <svg class="trash" width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" stroke="#49454F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    </div>
+    <div class="expense">
+      <div class="left">
+        <div class="cat">Chỗ ở</div>
+        <div class="note">Homestay 3 đêm</div>
+      </div>
+      <div class="right">1.800.000 ₫ <svg class="trash" width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" stroke="#49454F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    </div>
+    <div class="expense">
+      <div class="left">
+        <div class="cat">Ăn uống</div>
+        <div class="note">Ăn sáng, tối</div>
+      </div>
+      <div class="right">950.000 ₫ <svg class="trash" width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" stroke="#49454F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    </div>
+    <div class="expense">
+      <div class="left">
+        <div class="cat">Giải trí</div>
+        <div class="note">Vé tham quan</div>
+      </div>
+      <div class="right">400.000 ₫ <svg class="trash" width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" stroke="#49454F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    </div>
+    <div class="expense">
+      <div class="left">
+        <div class="cat">Mua sắm</div>
+        <div class="note">Quà lưu niệm</div>
+      </div>
+      <div class="right">250.000 ₫ <svg class="trash" width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" stroke="#49454F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    </div>
+  </div>
+  <div class="fab">+</div>
+  <div class="nav-pill"><div class="bar"></div></div>
+</div>
+</body>
+</html>

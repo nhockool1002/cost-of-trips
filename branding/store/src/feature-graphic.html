@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #000; }
+  .canvas {
+    position: relative;
+    width: 1024px;
+    height: 500px;
+    overflow: hidden;
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(135deg, #3B5CA8 0%, #2C6B8F 55%, #1E7A6E 100%);
+  }
+  .deco-circle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+  }
+  .c1 { width: 420px; height: 420px; top: -160px; left: 640px; }
+  .c2 { width: 260px; height: 260px; bottom: -120px; left: 780px; }
+  .c3 { width: 160px; height: 160px; top: 60px; left: 900px; background: rgba(255,255,255,0.05); }
+  .row {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0 72px;
+    gap: 56px;
+  }
+  .logo {
+    flex-shrink: 0;
+    width: 260px;
+    height: 260px;
+    border-radius: 58px;
+    background: linear-gradient(135deg, #3B5CA8, #1E7A6E);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .logo svg { width: 150px; height: 150px; }
+  .text-block { color: #fff; }
+  .app-name {
+    font-size: 76px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    text-shadow: 0 4px 18px rgba(0,0,0,0.25);
+  }
+  .tagline {
+    margin-top: 14px;
+    font-size: 32px;
+    font-weight: 500;
+    color: #F2E9C9;
+  }
+</style>
+</head>
+<body>
+<div class="canvas">
+  <div class="deco-circle c1"></div>
+  <div class="deco-circle c2"></div>
+  <div class="deco-circle c3"></div>
+  <div class="row">
+    <div class="logo">
+      <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg">
+        <g transform="translate(20.4,20.4) scale(2.8)">
+          <path fill="#FFFFFF" fill-rule="evenodd" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+        </g>
+        <path fill="#F2B705" d="M47,45.6 a7,7 0 1,0 14,0 a7,7 0 1,0 -14,0 z"/>
+      </svg>
+    </div>
+    <div class="text-block">
+      <div class="app-name">Cost Of Trips</div>
+      <div class="tagline">Ghi lại chi phí của mọi chuyến đi</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
