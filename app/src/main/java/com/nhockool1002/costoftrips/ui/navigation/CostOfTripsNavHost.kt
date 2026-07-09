@@ -6,15 +6,26 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.nhockool1002.costoftrips.ui.screens.about.AboutScreen
 import com.nhockool1002.costoftrips.ui.screens.addexpense.AddExpenseScreen
 import com.nhockool1002.costoftrips.ui.screens.createtrip.CreateTripScreen
 import com.nhockool1002.costoftrips.ui.screens.settings.SettingsScreen
+import com.nhockool1002.costoftrips.ui.screens.splash.SplashScreen
 import com.nhockool1002.costoftrips.ui.screens.tripdetail.TripDetailScreen
 import com.nhockool1002.costoftrips.ui.screens.triplist.TripListScreen
 
 @Composable
 fun CostOfTripsNavHost(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = Screen.TripList.route) {
+    NavHost(navController = navController, startDestination = Screen.Splash.route) {
+        composable(Screen.Splash.route) {
+            SplashScreen(
+                onTimeout = {
+                    navController.navigate(Screen.TripList.route) {
+                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
+                }
+            )
+        }
         composable(Screen.TripList.route) {
             TripListScreen(
                 onTripClick = { tripId -> navController.navigate(Screen.TripDetail.createRoute(tripId)) },
@@ -51,7 +62,13 @@ fun CostOfTripsNavHost(navController: NavHostController) {
             )
         }
         composable(Screen.Settings.route) {
-            SettingsScreen(onBack = { navController.popBackStack() })
+            SettingsScreen(
+                onBack = { navController.popBackStack() },
+                onAboutClick = { navController.navigate(Screen.About.route) }
+            )
+        }
+        composable(Screen.About.route) {
+            AboutScreen(onBack = { navController.popBackStack() })
         }
     }
 }

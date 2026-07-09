@@ -52,6 +52,8 @@ Thực hiện bởi **NhutNguyen © 2026**.
 - Room (SQLite) cho lưu trữ cục bộ
 - DataStore Preferences cho cài đặt giao diện
 - Navigation Compose
+- AndroidX SplashScreen cho màn hình khởi động
+- Phông chữ Baloo 2 & Nunito (Google Fonts, SIL Open Font License)
 - R8 + resource shrinking cho bản release
 
 ## Build

@@ -2,6 +2,7 @@ package com.nhockool1002.costoftrips.ui.screens.settings
 
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +15,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -36,7 +38,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.nhockool1002.costoftrips.BuildConfig
 import com.nhockool1002.costoftrips.R
 import com.nhockool1002.costoftrips.data.preferences.AppLanguage
 import com.nhockool1002.costoftrips.data.preferences.ThemeMode
@@ -45,7 +46,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(onBack: () -> Unit) {
+fun SettingsScreen(onBack: () -> Unit, onAboutClick: () -> Unit) {
     val context = LocalContext.current
     val viewModel: SettingsViewModel = viewModel(factory = appViewModelFactory(context))
     val themeMode by viewModel.themeMode.collectAsState()
@@ -135,7 +136,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                 }
             }
 
-            AboutCard()
+            AboutRow(onClick = onAboutClick)
         }
     }
 }
@@ -172,33 +173,25 @@ private fun LanguageOptionRow(label: String, selected: Boolean, onClick: () -> U
 }
 
 @Composable
-private fun AboutCard() {
+private fun AboutRow(onClick: () -> Unit) {
     Card(
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
     ) {
-        Column(
+        Row(
             modifier = Modifier.padding(20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("🧳💰", style = MaterialTheme.typography.headlineMedium)
-            Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleLarge)
+            Text("ℹ️", modifier = Modifier.padding(end = 12.dp))
             Text(
-                stringResource(R.string.settings_about_version, BuildConfig.VERSION_NAME),
-                style = MaterialTheme.typography.bodyMedium
+                stringResource(R.string.settings_about_title),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f)
             )
-            Text(
-                stringResource(R.string.settings_about_tagline),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-            )
-            Text(
-                stringResource(R.string.settings_about_credit),
-                style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier.padding(top = 8.dp)
-            )
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
         }
     }
 }

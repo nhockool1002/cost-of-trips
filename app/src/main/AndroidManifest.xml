@@ -24,6 +24,20 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!--
+          MainActivity extends ComponentActivity, not AppCompatActivity, so
+          AppCompatDelegate.setApplicationLocales() needs this marker service
+          to auto-persist and re-apply the chosen per-app locale on API < 33.
+        -->
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
     </application>
 
 </manifest>

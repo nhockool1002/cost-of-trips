@@ -17,7 +17,6 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -35,6 +34,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nhockool1002.costoftrips.R
 import com.nhockool1002.costoftrips.data.local.entity.ExpenseCategory
 import com.nhockool1002.costoftrips.ui.appViewModelFactory
+import com.nhockool1002.costoftrips.ui.screens.common.CuteTextField
+import com.nhockool1002.costoftrips.ui.screens.common.badgeColor
 import com.nhockool1002.costoftrips.ui.screens.common.displayName
 import com.nhockool1002.costoftrips.ui.screens.common.emoji
 
@@ -87,11 +88,12 @@ fun AddExpenseScreen(
                 }
             }
 
-            OutlinedTextField(
+            CuteTextField(
                 value = amountText,
                 onValueChange = { amountText = it; showError = false },
-                label = { Text(stringResource(R.string.add_expense_amount_label)) },
-                leadingIcon = { Text("💵") },
+                label = stringResource(R.string.add_expense_amount_label),
+                emoji = "💵",
+                emojiContainerColor = category.badgeColor(),
                 suffix = { Text("₫") },
                 isError = showError,
                 supportingText = {
@@ -101,13 +103,13 @@ fun AddExpenseScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
             )
-            OutlinedTextField(
+            CuteTextField(
                 value = note,
                 onValueChange = { note = it },
-                label = { Text(stringResource(R.string.add_expense_note_label)) },
-                leadingIcon = { Text("📝") },
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 2
+                label = stringResource(R.string.add_expense_note_label),
+                emoji = "📝",
+                minLines = 2,
+                modifier = Modifier.fillMaxWidth()
             )
             Button(
                 onClick = {

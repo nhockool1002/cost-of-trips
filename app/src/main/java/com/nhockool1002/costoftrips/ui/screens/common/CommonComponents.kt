@@ -1,6 +1,7 @@
 package com.nhockool1002.costoftrips.ui.screens.common
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -8,13 +9,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nhockool1002.costoftrips.data.local.entity.ExpenseCategory
@@ -22,14 +29,86 @@ import com.nhockool1002.costoftrips.ui.theme.GradientEnd
 import com.nhockool1002.costoftrips.ui.theme.GradientStart
 
 @Composable
-fun CategoryIcon(category: ExpenseCategory, modifier: Modifier = Modifier, size: androidx.compose.ui.unit.Dp = 52.dp) {
+fun CategoryIcon(category: ExpenseCategory, modifier: Modifier = Modifier, size: Dp = 52.dp) {
+    EmojiBadge(emoji = category.emoji(), containerColor = category.badgeColor(), modifier = modifier, size = size)
+}
+
+@Composable
+fun EmojiBadge(
+    emoji: String,
+    containerColor: Color,
+    modifier: Modifier = Modifier,
+    size: Dp = 44.dp
+) {
     Box(
         modifier = modifier
             .size(size)
-            .background(category.badgeColor(), CircleShape),
+            .background(containerColor, CircleShape),
         contentAlignment = Alignment.Center
     ) {
-        Text(category.emoji(), fontSize = (size.value * 0.45f).sp)
+        Text(emoji, fontSize = (size.value * 0.45f).sp)
+    }
+}
+
+/**
+ * A friendlier OutlinedTextField with a colored emoji badge as the leading icon.
+ * When [onClick] is provided the field becomes tap-to-trigger (e.g. opening a date
+ * picker) instead of directly editable — a plain `readOnly` field would still steal
+ * the tap for its own focus/cursor handling, so it's disabled and the badge/border
+ * colors are pinned to look identical to an enabled field.
+ */
+@Composable
+fun CuteTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    emoji: String,
+    modifier: Modifier = Modifier,
+    emojiContainerColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    isError: Boolean = false,
+    supportingText: (@Composable () -> Unit)? = null,
+    minLines: Int = 1,
+    suffix: (@Composable () -> Unit)? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    textStyle: TextStyle? = null,
+    onClick: (() -> Unit)? = null
+) {
+    val shape = RoundedCornerShape(20.dp)
+    val badge: @Composable () -> Unit = {
+        EmojiBadge(emoji = emoji, containerColor = emojiContainerColor, size = 36.dp)
+    }
+    if (onClick != null) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = {},
+            label = { Text(label) },
+            leadingIcon = badge,
+            suffix = suffix,
+            enabled = false,
+            shape = shape,
+            colors = OutlinedTextFieldDefaults.colors(
+                disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                disabledBorderColor = MaterialTheme.colorScheme.outline,
+                disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                disabledSuffixColor = MaterialTheme.colorScheme.onSurfaceVariant
+            ),
+            modifier = modifier.clickable(onClick = onClick)
+        )
+    } else {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            label = { Text(label) },
+            leadingIcon = badge,
+            suffix = suffix,
+            isError = isError,
+            supportingText = supportingText,
+            minLines = minLines,
+            shape = shape,
+            keyboardOptions = keyboardOptions,
+            textStyle = textStyle ?: MaterialTheme.typography.bodyLarge,
+            modifier = modifier
+        )
     }
 }
 
