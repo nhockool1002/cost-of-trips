@@ -127,11 +127,6 @@ fun TripListScreen(
                     subtitle = stringResource(R.string.trip_list_overview_subtitle, uiState.trips.size)
                 )
             }
-            if (uiState.trips.isNotEmpty()) {
-                item(key = "analytics") {
-                    AnalyticsSection(analytics = uiState.analytics)
-                }
-            }
             if (orderedTrips.isEmpty()) {
                 item(key = "empty-state") {
                     EmptyState()
@@ -162,53 +157,6 @@ fun TripListScreen(
 }
 
 @Composable
-private fun AnalyticsSection(analytics: SpendingAnalytics) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(stringResource(R.string.trip_list_analytics_title), style = MaterialTheme.typography.titleMedium)
-        AnalyticsRow(
-            emoji = "📅",
-            label = stringResource(R.string.trip_list_analytics_monthly),
-            value = CurrencyFormatter.format(analytics.monthlyTotal)
-        )
-        AnalyticsRow(
-            emoji = "🗓️",
-            label = stringResource(R.string.trip_list_analytics_yearly),
-            value = CurrencyFormatter.format(analytics.yearlyTotal)
-        )
-        AnalyticsRow(
-            emoji = "🏆",
-            label = stringResource(R.string.trip_list_analytics_top_trip),
-            value = analytics.mostExpensiveTrip?.let {
-                "${it.trip.name} · ${CurrencyFormatter.format(it.total)}"
-            } ?: stringResource(R.string.trip_list_analytics_no_data)
-        )
-    }
-}
-
-@Composable
-private fun AnalyticsRow(emoji: String, label: String, value: String) {
-    Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(emoji, modifier = Modifier.padding(end = 12.dp))
-            Text(
-                label,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.weight(1f)
-            )
-            Text(value, style = MaterialTheme.typography.titleMedium)
-        }
-    }
-}
-
-@Composable
 private fun TripCard(
     emoji: String,
     name: String,
@@ -225,49 +173,59 @@ private fun TripCard(
             .fillMaxWidth()
             .clickable(onClick = onClick)
     ) {
-        Row(
-            modifier = Modifier.padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(emoji, style = MaterialTheme.typography.titleLarge)
-            }
-            Spacer(modifier = Modifier.padding(start = 16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(name, style = MaterialTheme.typography.titleMedium)
-                if (destination.isNotBlank()) {
-                    Text(
-                        "📍 $destination",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(52.dp)
+                        .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(emoji, style = MaterialTheme.typography.titleLarge)
                 }
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 14.dp)
+                ) {
+                    Text(name, style = MaterialTheme.typography.titleMedium)
+                    if (destination.isNotBlank()) {
+                        Text(
+                            "📍 $destination",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                Text(
+                    "☰",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = dragModifier.padding(start = 8.dp)
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
                     "📅 $duration",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f)
                 )
-            }
-            Text(
-                "☰",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = dragModifier.padding(horizontal = 4.dp)
-            )
-            Box(
-                modifier = Modifier
-                    .background(MaterialTheme.colorScheme.tertiaryContainer, RoundedCornerShape(999.dp))
-                    .padding(horizontal = 14.dp, vertical = 8.dp)
-            ) {
-                Text(
-                    CurrencyFormatter.format(total),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer
-                )
+                Box(
+                    modifier = Modifier
+                        .background(MaterialTheme.colorScheme.tertiaryContainer, RoundedCornerShape(999.dp))
+                        .padding(horizontal = 14.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        CurrencyFormatter.format(total),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer
+                    )
+                }
             }
         }
     }

@@ -8,6 +8,8 @@
     <string name="trip_list_empty_title">Chưa có chuyến đi nào ✨</string>
     <string name="trip_list_empty">Nhấn nút bên dưới để lên kế hoạch cho chuyến đi đầu tiên.</string>
     <string name="trip_list_add_trip">Thêm chuyến đi</string>
+    <string name="nav_trips">Chuyến đi</string>
+    <string name="nav_statistics">Thống kê</string>
     <string name="trip_list_analytics_title">Phân tích chi tiêu</string>
     <string name="trip_list_analytics_monthly">Tháng này</string>
     <string name="trip_list_analytics_yearly">Năm nay</string>
@@ -61,6 +63,12 @@
     <string name="settings_about_tagline">Ghi lại chi phí của mọi chuyến đi — đơn giản và riêng tư.</string>
     <string name="settings_about_credit">Thực hiện bởi NhutNguyen © 2026</string>
     <string name="settings_about_version">Phiên bản %1$s</string>
+    <string name="about_coffee_button">☕ Mời tôi một ly cà phê</string>
+
+    <string name="settings_support_label">Hỗ trợ</string>
+    <string name="settings_report_bug">🐛 Báo lỗi</string>
+    <string name="bug_report_body_template">Mô tả lỗi:\n\n\nCác bước tái hiện:\n\n\nThiết bị / phiên bản Android:\n</string>
+    <string name="bug_report_no_email_app">Không tìm thấy ứng dụng email trên thiết bị này.</string>
 
     <string name="common_cancel">Hủy</string>
     <string name="common_back">Quay lại</string>

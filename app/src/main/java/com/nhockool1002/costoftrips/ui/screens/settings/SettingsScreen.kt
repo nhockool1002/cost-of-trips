@@ -1,5 +1,8 @@
 package com.nhockool1002.costoftrips.ui.screens.settings
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.clickable
@@ -136,8 +139,36 @@ fun SettingsScreen(onBack: () -> Unit, onAboutClick: () -> Unit) {
                 }
             }
 
+            SettingsSection(icon = "🛟", title = stringResource(R.string.settings_support_label)) {
+                val bodyTemplate = stringResource(R.string.bug_report_body_template)
+                val noEmailAppMessage = stringResource(R.string.bug_report_no_email_app)
+                Button(
+                    onClick = { sendBugReportEmail(context, bodyTemplate, noEmailAppMessage) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.settings_report_bug))
+                }
+            }
+
             AboutRow(onClick = onAboutClick)
         }
+    }
+}
+
+private fun sendBugReportEmail(context: Context, bodyTemplate: String, noEmailAppMessage: String) {
+    val errorId = (1..6)
+        .map { "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".random() }
+        .joinToString("")
+    val intent = Intent(Intent.ACTION_SENDTO).apply {
+        data = Uri.parse("mailto:")
+        putExtra(Intent.EXTRA_EMAIL, arrayOf("nhut.nguyenminh.it@gmail.com"))
+        putExtra(Intent.EXTRA_SUBJECT, "[#COT-$errorId] Error Report")
+        putExtra(Intent.EXTRA_TEXT, bodyTemplate)
+    }
+    if (intent.resolveActivity(context.packageManager) != null) {
+        context.startActivity(intent)
+    } else {
+        Toast.makeText(context, noEmailAppMessage, Toast.LENGTH_LONG).show()
     }
 }
 

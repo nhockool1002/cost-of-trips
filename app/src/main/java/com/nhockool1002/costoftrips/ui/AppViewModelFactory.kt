@@ -10,6 +10,7 @@ import com.nhockool1002.costoftrips.data.repository.TripRepository
 import com.nhockool1002.costoftrips.ui.screens.addexpense.AddExpenseViewModel
 import com.nhockool1002.costoftrips.ui.screens.createtrip.CreateTripViewModel
 import com.nhockool1002.costoftrips.ui.screens.settings.SettingsViewModel
+import com.nhockool1002.costoftrips.ui.screens.statistics.StatisticsViewModel
 import com.nhockool1002.costoftrips.ui.screens.tripdetail.TripDetailViewModel
 import com.nhockool1002.costoftrips.ui.screens.triplist.TripListViewModel
 
@@ -32,6 +33,8 @@ class AppViewModelFactory(
                 AddExpenseViewModel(tripRepository, tripId) as T
             modelClass.isAssignableFrom(SettingsViewModel::class.java) ->
                 SettingsViewModel(userPreferencesRepository, tripRepository) as T
+            modelClass.isAssignableFrom(StatisticsViewModel::class.java) ->
+                StatisticsViewModel(tripRepository) as T
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }
     }

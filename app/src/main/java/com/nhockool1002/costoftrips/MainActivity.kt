@@ -6,7 +6,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
@@ -14,11 +19,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.stringResource
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.nhockool1002.costoftrips.data.preferences.ThemeMode
 import com.nhockool1002.costoftrips.ui.navigation.CostOfTripsNavHost
+import com.nhockool1002.costoftrips.ui.navigation.Screen
 import com.nhockool1002.costoftrips.ui.theme.CostOfTripsTheme
 
 // AppCompatActivity (not plain ComponentActivity) is required here: only
@@ -59,7 +67,47 @@ fun CostOfTripsRoot() {
     CostOfTripsTheme(darkTheme = darkTheme) {
         Surface(modifier = Modifier.fillMaxSize()) {
             val navController = rememberNavController()
-            CostOfTripsNavHost(navController = navController)
+            val backStackEntry by navController.currentBackStackEntryAsState()
+            val currentRoute = backStackEntry?.destination?.route
+            val showBottomBar = currentRoute == Screen.TripList.route || currentRoute == Screen.Statistics.route
+
+            Scaffold(
+                bottomBar = {
+                    if (showBottomBar) {
+                        NavigationBar {
+                            NavigationBarItem(
+                                selected = currentRoute == Screen.TripList.route,
+                                onClick = {
+                                    if (currentRoute != Screen.TripList.route) {
+                                        navController.navigate(Screen.TripList.route) {
+                                            popUpTo(Screen.TripList.route) { inclusive = true }
+                                        }
+                                    }
+                                },
+                                icon = { Text("🧳") },
+                                label = { Text(stringResource(R.string.nav_trips)) }
+                            )
+                            NavigationBarItem(
+                                selected = currentRoute == Screen.Statistics.route,
+                                onClick = {
+                                    if (currentRoute != Screen.Statistics.route) {
+                                        navController.navigate(Screen.Statistics.route) {
+                                            popUpTo(Screen.TripList.route)
+                                        }
+                                    }
+                                },
+                                icon = { Text("📊") },
+                                label = { Text(stringResource(R.string.nav_statistics)) }
+                            )
+                        }
+                    }
+                }
+            ) { innerPadding ->
+                CostOfTripsNavHost(
+                    navController = navController,
+                    modifier = Modifier.padding(innerPadding)
+                )
+            }
         }
     }
 }
