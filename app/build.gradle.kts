@@ -12,8 +12,8 @@ android {
         applicationId = "com.nhockool1002.costoftrips"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.0.0.a"
     }
 
     val keystorePath = System.getenv("KEYSTORE_PATH")
