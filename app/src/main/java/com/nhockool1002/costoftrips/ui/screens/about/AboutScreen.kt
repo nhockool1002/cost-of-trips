@@ -2,19 +2,20 @@ package com.nhockool1002.costoftrips.ui.screens.about
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -25,16 +26,20 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.nhockool1002.costoftrips.BuildConfig
 import com.nhockool1002.costoftrips.R
+import com.nhockool1002.costoftrips.ui.theme.CookieFamily
 
-private const val PAYPAL_DONATE_URL =
-    "https://www.paypal.com/donate/?business=nhut.nguyenminh.it%40gmail.com&currency_code=USD&item_name=Buy+me+a+coffee"
+private const val BUY_ME_A_COFFEE_URL = "https://www.buymeacoffee.com/nhutnm"
+private val BmcGreen = Color(0xFF40DCA5)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -100,14 +105,19 @@ fun AboutScreen(onBack: () -> Unit) {
             )
             Button(
                 onClick = {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PAYPAL_DONATE_URL)))
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(BUY_ME_A_COFFEE_URL)))
                 },
-                shape = RoundedCornerShape(100),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 28.dp)
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = BmcGreen, contentColor = Color.White),
+                border = BorderStroke(1.dp, Color.Black),
+                modifier = Modifier.padding(top = 28.dp)
             ) {
-                Text(stringResource(R.string.about_coffee_button))
+                Text("☕", modifier = Modifier.padding(end = 10.dp))
+                Text(
+                    stringResource(R.string.about_coffee_button),
+                    fontFamily = CookieFamily,
+                    fontSize = 22.sp
+                )
             }
         }
     }

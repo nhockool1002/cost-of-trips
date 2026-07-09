@@ -25,6 +25,12 @@ val NunitoFamily = FontFamily(
     Font(R.font.nunito_bold, FontWeight.Bold)
 )
 
+// Cookie — matches the handwriting font used on the official Buy Me A Coffee
+// button/badge, used only for that one button to stay on-brand with it.
+val CookieFamily = FontFamily(
+    Font(R.font.cookie_regular, FontWeight.Normal)
+)
+
 val Typography = Typography(
     headlineMedium = TextStyle(
         fontFamily = BalooFamily,
