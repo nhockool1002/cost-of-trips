@@ -1,0 +1,57 @@
+package com.nhockool1002.costoftrips.ui.navigation
+
+import androidx.compose.runtime.Composable
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import com.nhockool1002.costoftrips.ui.screens.addexpense.AddExpenseScreen
+import com.nhockool1002.costoftrips.ui.screens.createtrip.CreateTripScreen
+import com.nhockool1002.costoftrips.ui.screens.settings.SettingsScreen
+import com.nhockool1002.costoftrips.ui.screens.tripdetail.TripDetailScreen
+import com.nhockool1002.costoftrips.ui.screens.triplist.TripListScreen
+
+@Composable
+fun CostOfTripsNavHost(navController: NavHostController) {
+    NavHost(navController = navController, startDestination = Screen.TripList.route) {
+        composable(Screen.TripList.route) {
+            TripListScreen(
+                onTripClick = { tripId -> navController.navigate(Screen.TripDetail.createRoute(tripId)) },
+                onAddTripClick = { navController.navigate(Screen.CreateTrip.route) },
+                onSettingsClick = { navController.navigate(Screen.Settings.route) }
+            )
+        }
+        composable(Screen.CreateTrip.route) {
+            CreateTripScreen(
+                onTripCreated = { navController.popBackStack() },
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable(
+            route = Screen.TripDetail.route,
+            arguments = listOf(navArgument("tripId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val tripId = backStackEntry.arguments?.getLong("tripId") ?: 0L
+            TripDetailScreen(
+                tripId = tripId,
+                onBack = { navController.popBackStack() },
+                onAddExpenseClick = { navController.navigate(Screen.AddExpense.createRoute(tripId)) }
+            )
+        }
+        composable(
+            route = Screen.AddExpense.route,
+            arguments = listOf(navArgument("tripId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val tripId = backStackEntry.arguments?.getLong("tripId") ?: 0L
+            AddExpenseScreen(
+                tripId = tripId,
+                onExpenseAdded = { navController.popBackStack() },
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable(Screen.Settings.route) {
+            SettingsScreen(onBack = { navController.popBackStack() })
+        }
+    }
+}

@@ -1,0 +1,51 @@
+<resources>
+    <string name="app_name">Chi Phí Chuyến Đi</string>
+
+    <string name="trip_list_title">Chuyến đi của tôi</string>
+    <string name="trip_list_empty">Chưa có chuyến đi nào. Nhấn + để tạo chuyến đi đầu tiên.</string>
+    <string name="trip_list_add_trip">Thêm chuyến đi</string>
+    <string name="trip_list_total_label">Tổng: %1$s</string>
+
+    <string name="action_settings">Cài đặt</string>
+
+    <string name="create_trip_title">Chuyến đi mới</string>
+    <string name="create_trip_name_label">Tên chuyến đi</string>
+    <string name="create_trip_destination_label">Điểm đến</string>
+    <string name="create_trip_start_date_label">Ngày bắt đầu</string>
+    <string name="create_trip_end_date_label">Ngày kết thúc</string>
+    <string name="create_trip_note_label">Ghi chú</string>
+    <string name="create_trip_save">Lưu</string>
+    <string name="create_trip_name_required">Vui lòng nhập tên chuyến đi</string>
+
+    <string name="trip_detail_total_label">Tổng chi phí: %1$s</string>
+    <string name="trip_detail_add_expense">Thêm chi phí</string>
+    <string name="trip_detail_empty_expenses">Chưa có chi phí nào. Nhấn + để thêm.</string>
+
+    <string name="add_expense_title">Chi phí mới</string>
+    <string name="add_expense_category_label">Hạng mục</string>
+    <string name="add_expense_amount_label">Số tiền</string>
+    <string name="add_expense_note_label">Ghi chú</string>
+    <string name="add_expense_save">Lưu</string>
+    <string name="add_expense_amount_required">Số tiền phải lớn hơn 0</string>
+
+    <string name="category_transport">Di chuyển</string>
+    <string name="category_accommodation">Chỗ ở</string>
+    <string name="category_food">Ăn uống</string>
+    <string name="category_entertainment">Giải trí</string>
+    <string name="category_shopping">Mua sắm</string>
+    <string name="category_other">Khác</string>
+
+    <string name="settings_title">Cài đặt</string>
+    <string name="settings_language_label">Ngôn ngữ</string>
+    <string name="settings_theme_label">Giao diện</string>
+    <string name="settings_theme_light">Sáng</string>
+    <string name="settings_theme_dark">Tối</string>
+    <string name="settings_theme_system">Theo hệ thống</string>
+    <string name="settings_export_data">Xuất toàn bộ dữ liệu</string>
+    <string name="settings_export_success">Đã xuất dữ liệu vào thư mục Downloads</string>
+    <string name="settings_export_failure">Xuất dữ liệu thất bại</string>
+
+    <string name="common_cancel">Hủy</string>
+    <string name="common_back">Quay lại</string>
+    <string name="common_delete">Xóa</string>
+</resources>

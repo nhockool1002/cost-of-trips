@@ -1,0 +1,51 @@
+<resources>
+    <string name="app_name">Cost Of Trips</string>
+
+    <string name="trip_list_title">My Trips</string>
+    <string name="trip_list_empty">No trips yet. Tap + to create your first trip.</string>
+    <string name="trip_list_add_trip">Add trip</string>
+    <string name="trip_list_total_label">Total: %1$s</string>
+
+    <string name="action_settings">Settings</string>
+
+    <string name="create_trip_title">New Trip</string>
+    <string name="create_trip_name_label">Trip name</string>
+    <string name="create_trip_destination_label">Destination</string>
+    <string name="create_trip_start_date_label">Start date</string>
+    <string name="create_trip_end_date_label">End date</string>
+    <string name="create_trip_note_label">Note</string>
+    <string name="create_trip_save">Save</string>
+    <string name="create_trip_name_required">Trip name is required</string>
+
+    <string name="trip_detail_total_label">Total spent: %1$s</string>
+    <string name="trip_detail_add_expense">Add expense</string>
+    <string name="trip_detail_empty_expenses">No expenses yet. Tap + to add one.</string>
+
+    <string name="add_expense_title">New Expense</string>
+    <string name="add_expense_category_label">Category</string>
+    <string name="add_expense_amount_label">Amount</string>
+    <string name="add_expense_note_label">Note</string>
+    <string name="add_expense_save">Save</string>
+    <string name="add_expense_amount_required">Amount must be greater than 0</string>
+
+    <string name="category_transport">Transport</string>
+    <string name="category_accommodation">Accommodation</string>
+    <string name="category_food">Food</string>
+    <string name="category_entertainment">Entertainment</string>
+    <string name="category_shopping">Shopping</string>
+    <string name="category_other">Other</string>
+
+    <string name="settings_title">Settings</string>
+    <string name="settings_language_label">Language</string>
+    <string name="settings_theme_label">Theme</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_theme_system">System default</string>
+    <string name="settings_export_data">Export all data</string>
+    <string name="settings_export_success">Data exported to Downloads</string>
+    <string name="settings_export_failure">Export failed</string>
+
+    <string name="common_cancel">Cancel</string>
+    <string name="common_back">Back</string>
+    <string name="common_delete">Delete</string>
+</resources>
