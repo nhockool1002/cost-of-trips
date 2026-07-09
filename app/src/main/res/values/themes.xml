@@ -1,5 +1,3 @@
 <resources>
-    <style name="Theme.CostOfTrips" parent="Theme.AppCompat.DayNight.NoActionBar">
-        <item name="android:windowLightStatusBar">true</item>
-    </style>
+    <style name="Theme.CostOfTrips" parent="Theme.AppCompat.DayNight.NoActionBar" />
 </resources>

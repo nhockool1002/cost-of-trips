@@ -18,3 +18,4 @@ out/
 release/
 /app/build
 /app/release
+/keystore/

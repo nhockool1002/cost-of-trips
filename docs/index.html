@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cost Of Trips - Chi Phí Chuyến Đi</title>
+<meta name="description" content="Ứng dụng Android ghi lại chi phí của từng chuyến đi. Không cần tài khoản, dữ liệu lưu ngay trên điện thoại." />
+<link rel="icon" type="image/svg+xml" href="../branding/logo.svg" />
+<style>
+  :root {
+    --blue: #3B5CA8;
+    --teal: #1E7A6E;
+    --gold: #F2B705;
+    --ink: #1A2233;
+    --muted: #5B6472;
+    --bg: #F6F8FB;
+    --card: #FFFFFF;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+  }
+  a { color: inherit; }
+  .hero {
+    background: linear-gradient(135deg, var(--blue), var(--teal));
+    color: #fff;
+    padding: 64px 24px 80px;
+    text-align: center;
+  }
+  .hero img {
+    width: 112px;
+    height: 112px;
+    border-radius: 24px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+  }
+  .hero h1 {
+    font-size: 2.2rem;
+    margin: 24px 0 8px;
+  }
+  .hero p {
+    font-size: 1.1rem;
+    opacity: 0.92;
+    max-width: 560px;
+    margin: 0 auto 32px;
+  }
+  .cta {
+    display: inline-flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .btn {
+    display: inline-block;
+    padding: 14px 28px;
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .btn-primary {
+    background: var(--gold);
+    color: var(--ink);
+  }
+  .btn-secondary {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.4);
+  }
+  main {
+    max-width: 960px;
+    margin: -48px auto 0;
+    padding: 0 24px 64px;
+  }
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-top: 32px;
+  }
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 8px 24px rgba(20,30,60,0.08);
+  }
+  .card h3 {
+    margin: 0 0 8px;
+    font-size: 1.05rem;
+  }
+  .card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  .section-title {
+    text-align: center;
+    margin-top: 56px;
+  }
+  .section-title h2 {
+    font-size: 1.6rem;
+    margin-bottom: 4px;
+  }
+  .section-title p {
+    color: var(--muted);
+  }
+  footer {
+    text-align: center;
+    padding: 32px 24px 48px;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  footer a {
+    color: var(--blue);
+    text-decoration: none;
+  }
+  .stack {
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <img src="../branding/logo.svg" alt="Cost Of Trips logo" />
+  <h1>Cost Of Trips</h1>
+  <p>Ghi lại chi phí của từng chuyến đi ngay trên điện thoại. Không tài khoản, không máy chủ, không quảng cáo — toàn bộ dữ liệu là của bạn.</p>
+  <div class="cta">
+    <a class="btn btn-primary" href="https://github.com/nhockool1002/cost-of-trips/releases/latest">Tải APK mới nhất</a>
+    <a class="btn btn-secondary" href="https://github.com/nhockool1002/cost-of-trips">Xem trên GitHub</a>
+  </div>
+</section>
+
+<main>
+  <div class="section-title">
+    <h2>Tính năng</h2>
+    <p>Đơn giản, riêng tư, đủ dùng cho mọi chuyến đi.</p>
+  </div>
+  <div class="features">
+    <div class="card">
+      <h3>🧳 Quản lý chuyến đi</h3>
+      <p>Tạo chuyến đi với tên, điểm đến, ngày bắt đầu / kết thúc và ghi chú.</p>
+    </div>
+    <div class="card">
+      <h3>💸 Theo dõi chi phí</h3>
+      <p>Ghi từng khoản chi theo 6 hạng mục: di chuyển, chỗ ở, ăn uống, giải trí, mua sắm, khác.</p>
+    </div>
+    <div class="card">
+      <h3>📤 Xuất dữ liệu</h3>
+      <p>Xuất toàn bộ dữ liệu ra file JSON lưu trong thư mục Downloads bất cứ lúc nào.</p>
+    </div>
+    <div class="card">
+      <h3>🌗 Sáng / Tối</h3>
+      <p>Chuyển đổi giao diện Sáng, Tối hoặc theo hệ thống.</p>
+    </div>
+    <div class="card">
+      <h3>🌐 Đa ngôn ngữ</h3>
+      <p>Hỗ trợ Tiếng Việt và Tiếng Anh, đổi ngay trong phần cài đặt.</p>
+    </div>
+    <div class="card">
+      <h3>🔒 Riêng tư tuyệt đối</h3>
+      <p>Không cần đăng ký tài khoản. Không kết nối mạng. Dữ liệu chỉ lưu trên máy của bạn.</p>
+    </div>
+  </div>
+
+  <div class="section-title">
+    <h2>Công nghệ</h2>
+  </div>
+  <div class="features stack">
+    <div class="card">
+      <p>Kotlin · Jetpack Compose · Material 3 · Room (SQLite) · DataStore · Navigation Compose</p>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <p><a href="privacy.html">Chính sách riêng tư</a> · <a href="https://github.com/nhockool1002/cost-of-trips">Mã nguồn trên GitHub</a></p>
+  <p>&copy; 2026 Cost Of Trips</p>
+</footer>
+
+</body>
+</html>
