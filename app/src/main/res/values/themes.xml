@@ -1,3 +1,9 @@
 <resources>
     <style name="Theme.CostOfTrips" parent="Theme.AppCompat.DayNight.NoActionBar" />
+
+    <style name="Theme.CostOfTrips.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#3B5CA8</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.CostOfTrips</item>
+    </style>
 </resources>

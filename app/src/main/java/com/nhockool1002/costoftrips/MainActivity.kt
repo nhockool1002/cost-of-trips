@@ -14,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.navigation.compose.rememberNavController
 import com.nhockool1002.costoftrips.data.preferences.ThemeMode
@@ -22,6 +23,7 @@ import com.nhockool1002.costoftrips.ui.theme.CostOfTripsTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
@@ -33,7 +35,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun CostOfTripsRoot() {
     val app = LocalContext.current.applicationContext as CostOfTripsApp
-    val themeMode by app.userPreferencesRepository.themeMode.collectAsState(initial = ThemeMode.SYSTEM)
+    val themeMode by app.userPreferencesRepository.themeMode.collectAsState(initial = ThemeMode.DARK)
 
     val darkTheme = when (themeMode) {
         ThemeMode.LIGHT -> false

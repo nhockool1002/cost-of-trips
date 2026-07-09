@@ -17,7 +17,7 @@ class UserPreferencesRepository(private val context: Context) {
     }
 
     val themeMode = context.dataStore.data.map { prefs ->
-        prefs[Keys.THEME_MODE]?.let { ThemeMode.valueOf(it) } ?: ThemeMode.SYSTEM
+        prefs[Keys.THEME_MODE]?.let { ThemeMode.valueOf(it) } ?: ThemeMode.DARK
     }
 
     suspend fun setThemeMode(mode: ThemeMode) {
