@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -31,8 +32,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -43,11 +49,21 @@ import com.nhockool1002.costoftrips.R
 import com.nhockool1002.costoftrips.ui.appViewModelFactory
 import com.nhockool1002.costoftrips.ui.screens.common.GradientStatCard
 import com.nhockool1002.costoftrips.util.CurrencyFormatter
+import kotlinx.coroutines.launch
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
+import java.text.DateFormat
+import java.util.Date
 
 private val tripEmojis = listOf("🧳", "✈️", "🏖️", "🏔️", "🌆", "🎒", "🚗", "⛺")
 
 private fun tripEmojiFor(id: Long): String =
     tripEmojis[(id.toInt() and Int.MAX_VALUE) % tripEmojis.size]
+
+private fun formatTripDuration(startDate: Long, endDate: Long): String {
+    val format = DateFormat.getDateInstance(DateFormat.SHORT)
+    return "${format.format(Date(startDate))} - ${format.format(Date(endDate))}"
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,8 +74,18 @@ fun TripListScreen(
 ) {
     val context = LocalContext.current
     val viewModel: TripListViewModel = viewModel(factory = appViewModelFactory(context))
-    val trips by viewModel.trips.collectAsState()
-    val overallTotal = trips.sumOf { it.total }
+    val uiState by viewModel.uiState.collectAsState()
+    val scope = rememberCoroutineScope()
+
+    var orderedTrips by remember { mutableStateOf(uiState.trips) }
+    LaunchedEffect(uiState.trips) { orderedTrips = uiState.trips }
+
+    val lazyListState = rememberLazyListState()
+    val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
+        orderedTrips = orderedTrips.toMutableList().apply {
+            add(to.index, removeAt(from.index))
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -81,40 +107,103 @@ fun TripListScreen(
         }
     ) { padding ->
         LazyColumn(
+            state = lazyListState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
             contentPadding = PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item {
+            item(key = "greeting") {
                 Text(
                     stringResource(R.string.trip_list_greeting),
                     style = MaterialTheme.typography.headlineMedium
                 )
             }
-            item {
+            item(key = "hero") {
                 GradientStatCard(
                     title = stringResource(R.string.trip_list_overview_total),
-                    value = CurrencyFormatter.format(overallTotal),
-                    subtitle = stringResource(R.string.trip_list_overview_subtitle, trips.size)
+                    value = CurrencyFormatter.format(uiState.trips.sumOf { it.total }),
+                    subtitle = stringResource(R.string.trip_list_overview_subtitle, uiState.trips.size)
                 )
             }
-            if (trips.isEmpty()) {
-                item {
+            if (uiState.trips.isNotEmpty()) {
+                item(key = "analytics") {
+                    AnalyticsSection(analytics = uiState.analytics)
+                }
+            }
+            if (orderedTrips.isEmpty()) {
+                item(key = "empty-state") {
                     EmptyState()
                 }
             } else {
-                items(trips, key = { it.trip.id }) { item ->
-                    TripCard(
-                        emoji = tripEmojiFor(item.trip.id),
-                        name = item.trip.name,
-                        destination = item.trip.destination,
-                        total = item.total,
-                        onClick = { onTripClick(item.trip.id) }
-                    )
+                items(orderedTrips, key = { it.trip.id }) { item ->
+                    ReorderableItem(reorderableState, key = item.trip.id) { _ ->
+                        TripCard(
+                            emoji = tripEmojiFor(item.trip.id),
+                            name = item.trip.name,
+                            destination = item.trip.destination,
+                            duration = formatTripDuration(item.trip.startDate, item.trip.endDate),
+                            total = item.total,
+                            dragModifier = Modifier.longPressDraggableHandle(
+                                onDragStopped = {
+                                    scope.launch {
+                                        viewModel.reorderTrips(orderedTrips.map { it.trip.id })
+                                    }
+                                }
+                            ),
+                            onClick = { onTripClick(item.trip.id) }
+                        )
+                    }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun AnalyticsSection(analytics: SpendingAnalytics) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(stringResource(R.string.trip_list_analytics_title), style = MaterialTheme.typography.titleMedium)
+        AnalyticsRow(
+            emoji = "📅",
+            label = stringResource(R.string.trip_list_analytics_monthly),
+            value = CurrencyFormatter.format(analytics.monthlyTotal)
+        )
+        AnalyticsRow(
+            emoji = "🗓️",
+            label = stringResource(R.string.trip_list_analytics_yearly),
+            value = CurrencyFormatter.format(analytics.yearlyTotal)
+        )
+        AnalyticsRow(
+            emoji = "🏆",
+            label = stringResource(R.string.trip_list_analytics_top_trip),
+            value = analytics.mostExpensiveTrip?.let {
+                "${it.trip.name} · ${CurrencyFormatter.format(it.total)}"
+            } ?: stringResource(R.string.trip_list_analytics_no_data)
+        )
+    }
+}
+
+@Composable
+private fun AnalyticsRow(emoji: String, label: String, value: String) {
+    Card(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(emoji, modifier = Modifier.padding(end = 12.dp))
+            Text(
+                label,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f)
+            )
+            Text(value, style = MaterialTheme.typography.titleMedium)
         }
     }
 }
@@ -124,7 +213,9 @@ private fun TripCard(
     emoji: String,
     name: String,
     destination: String,
+    duration: String,
     total: Double,
+    dragModifier: Modifier,
     onClick: () -> Unit
 ) {
     Card(
@@ -156,7 +247,17 @@ private fun TripCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+                Text(
+                    "📅 $duration",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
+            Text(
+                "☰",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = dragModifier.padding(horizontal = 4.dp)
+            )
             Box(
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.tertiaryContainer, RoundedCornerShape(999.dp))

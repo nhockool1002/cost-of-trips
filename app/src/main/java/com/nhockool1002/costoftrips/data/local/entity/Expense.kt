@@ -24,5 +24,6 @@ data class Expense(
     val category: ExpenseCategory,
     val amount: Double,
     val note: String = "",
-    val date: Long = System.currentTimeMillis()
+    val date: Long = System.currentTimeMillis(),
+    val sortOrder: Int = 0
 )

@@ -12,5 +12,6 @@ data class Trip(
     val startDate: Long,
     val endDate: Long,
     val note: String = "",
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val sortOrder: Int = 0
 )

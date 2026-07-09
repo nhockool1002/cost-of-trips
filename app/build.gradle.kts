@@ -14,6 +14,13 @@ android {
         targetSdk = 35
         versionCode = 2
         versionName = "1.0.0.a"
+
+        // The app only ships English (default) + Vietnamese strings, but
+        // AndroidX libraries (AppCompat, Compose, etc.) bundle their own
+        // string resources translated into ~70 locales. Without this, every
+        // one of those ships in the APK/AAB even though the app UI never
+        // surfaces them.
+        resourceConfigurations += listOf("en", "vi")
     }
 
     val keystorePath = System.getenv("KEYSTORE_PATH")
@@ -83,9 +90,16 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.material:material-icons-extended")
+    // material-icons-extended was removed: every icon the app actually uses
+    // (Add, Delete, Settings, AutoMirrored ArrowBack/KeyboardArrowRight) ships
+    // in material-icons-core, which material3 already pulls in transitively.
+    // Verified via a clean release build that this makes no measurable size
+    // difference either way (R8 was already shrinking the extended set down
+    // to the same handful of icons) — dropped mainly to shrink the dependency
+    // graph, not for size.
 
     implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation("sh.calvin.reorderable:reorderable:2.4.3")
 
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")

@@ -8,6 +8,11 @@
     <string name="trip_list_empty_title">Chưa có chuyến đi nào ✨</string>
     <string name="trip_list_empty">Nhấn nút bên dưới để lên kế hoạch cho chuyến đi đầu tiên.</string>
     <string name="trip_list_add_trip">Thêm chuyến đi</string>
+    <string name="trip_list_analytics_title">Phân tích chi tiêu</string>
+    <string name="trip_list_analytics_monthly">Tháng này</string>
+    <string name="trip_list_analytics_yearly">Năm nay</string>
+    <string name="trip_list_analytics_top_trip">Chuyến đắt nhất</string>
+    <string name="trip_list_analytics_no_data">Chưa đủ dữ liệu</string>
 
     <string name="action_settings">Cài đặt</string>
 
@@ -24,6 +29,8 @@
     <string name="trip_detail_add_expense">Thêm chi phí</string>
     <string name="trip_detail_empty_title">Chưa có chi phí nào 🧾</string>
     <string name="trip_detail_empty_expenses">Nhấn nút bên dưới để ghi khoản chi đầu tiên.</string>
+    <string name="expense_delete_title">Xóa khoản chi này?</string>
+    <string name="expense_delete_message">Hành động này không thể hoàn tác.</string>
 
     <string name="add_expense_title">Chi phí mới</string>
     <string name="add_expense_category_label">Hạng mục</string>

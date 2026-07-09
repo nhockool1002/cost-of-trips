@@ -8,6 +8,11 @@
     <string name="trip_list_empty_title">No trips yet ✨</string>
     <string name="trip_list_empty">Tap the button below to plan your first trip.</string>
     <string name="trip_list_add_trip">Add trip</string>
+    <string name="trip_list_analytics_title">Spending overview</string>
+    <string name="trip_list_analytics_monthly">This month</string>
+    <string name="trip_list_analytics_yearly">This year</string>
+    <string name="trip_list_analytics_top_trip">Priciest trip</string>
+    <string name="trip_list_analytics_no_data">Not enough data yet</string>
 
     <string name="action_settings">Settings</string>
 
@@ -24,6 +29,8 @@
     <string name="trip_detail_add_expense">Add expense</string>
     <string name="trip_detail_empty_title">No expenses yet 🧾</string>
     <string name="trip_detail_empty_expenses">Tap the button below to log your first expense.</string>
+    <string name="expense_delete_title">Delete this expense?</string>
+    <string name="expense_delete_message">This can\'t be undone.</string>
 
     <string name="add_expense_title">New Expense</string>
     <string name="add_expense_category_label">Category</string>

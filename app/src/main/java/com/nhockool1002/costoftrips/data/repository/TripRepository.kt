@@ -34,4 +34,8 @@ class TripRepository(
     suspend fun getAllTrips(): List<Trip> = tripDao.getAllTrips()
 
     suspend fun getAllExpenses(): List<Expense> = expenseDao.getAllExpenses()
+
+    suspend fun reorderTrips(orderedTripIds: List<Long>) = tripDao.reorder(orderedTripIds)
+
+    suspend fun reorderExpenses(orderedExpenseIds: List<Long>) = expenseDao.reorder(orderedExpenseIds)
 }

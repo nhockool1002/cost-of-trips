@@ -31,4 +31,8 @@ class TripDetailViewModel(
     fun deleteExpense(expense: Expense) {
         viewModelScope.launch { repository.deleteExpense(expense) }
     }
+
+    fun reorderExpenses(orderedExpenseIds: List<Long>) {
+        viewModelScope.launch { repository.reorderExpenses(orderedExpenseIds) }
+    }
 }
