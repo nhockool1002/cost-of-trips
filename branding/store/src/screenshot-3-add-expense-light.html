@@ -4,14 +4,14 @@
 <meta charset="UTF-8" />
 <style>
   :root {
-    --gold: #F2B705;
     --primary: #3B5CA8;
     --bg-light: #FFFBFE;
     --surface-light: #FFFFFF;
-    --card-light: #F7F2FA;
     --ink-light: #1B1B1F;
-    --muted-light: #49454F;
+    --muted-light: #5B5766;
     --outline-light: #79747E;
+    --primary-container-light: #DCE1FF;
+    --on-primary-container-light: #001947;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { background: #000; }
@@ -39,47 +39,56 @@
   .status-icons .bar { width: 44px; height: 22px; border: 3px solid var(--ink-light); border-radius: 4px; position: relative; }
   .status-icons .bar::after { content: ""; position: absolute; top: 3px; left: 3px; bottom: 3px; width: 30px; background: var(--ink-light); border-radius: 2px; }
   .top-bar {
-    height: 168px;
+    height: 148px;
     background: var(--surface-light);
     display: flex;
     align-items: center;
-    gap: 32px;
+    gap: 28px;
     padding: 0 24px;
   }
-  .top-bar h1 { font-size: 42px; font-weight: 600; }
+  .top-bar h1 { font-size: 38px; font-weight: 700; }
   .icon-btn {
     width: 88px; height: 88px;
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-size: 44px;
   }
-  .form { padding: 40px 48px; display: flex; flex-direction: column; gap: 48px; }
-  .field-label {
-    font-size: 26px;
-    color: var(--primary);
+  .form { padding: 24px 40px; display: flex; flex-direction: column; gap: 40px; }
+  .field-label { font-size: 28px; font-weight: 700; }
+  .chip-row { display: flex; gap: 14px; flex-wrap: wrap; }
+  .chip {
+    border-radius: 999px;
+    padding: 18px 28px;
+    font-size: 28px;
     font-weight: 600;
-    margin-bottom: 14px;
+    border: 3px solid var(--outline-light);
+    color: var(--ink-light);
+  }
+  .chip.selected {
+    background: var(--primary-container-light);
+    color: var(--on-primary-container-light);
+    border-color: transparent;
   }
   .field {
     border: 3px solid var(--outline-light);
-    border-radius: 20px;
-    padding: 28px 32px;
-    font-size: 36px;
+    border-radius: 24px;
+    padding: 26px 30px;
+    font-size: 40px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 16px;
   }
   .field.focused { border-color: var(--primary); border-width: 4px; }
-  .field .arrow { color: var(--muted-light); font-size: 32px; }
+  .field .suffix { margin-left: auto; color: var(--muted-light); font-size: 34px; }
   .save-btn {
-    margin-top: 24px;
+    margin-top: 16px;
     background: var(--primary);
     color: white;
     border-radius: 999px;
     padding: 32px;
     text-align: center;
     font-size: 38px;
-    font-weight: 600;
+    font-weight: 700;
   }
   .nav-pill {
     position: absolute;
@@ -106,16 +115,25 @@
   </div>
   <div class="form">
     <div>
-      <div class="field-label">Hạng mục</div>
-      <div class="field focused"><span>Ăn uống</span><span class="arrow">▾</span></div>
+      <div class="field-label" style="margin-bottom:16px">Hạng mục</div>
+      <div class="chip-row">
+        <div class="chip">🚗 Di chuyển</div>
+        <div class="chip">🏨 Chỗ ở</div>
+        <div class="chip selected">🍜 Ăn uống</div>
+        <div class="chip">🎉 Giải trí</div>
+      </div>
+      <div class="chip-row" style="margin-top:14px">
+        <div class="chip">🛍️ Mua sắm</div>
+        <div class="chip">📦 Khác</div>
+      </div>
     </div>
     <div>
-      <div class="field-label">Số tiền</div>
-      <div class="field"><span>150000</span></div>
+      <div class="field-label" style="margin-bottom:16px">Số tiền</div>
+      <div class="field focused">💵 <span>150000</span><span class="suffix">₫</span></div>
     </div>
     <div>
-      <div class="field-label">Ghi chú</div>
-      <div class="field"><span>Ăn trưa quán địa phương</span></div>
+      <div class="field-label" style="margin-bottom:16px">Ghi chú</div>
+      <div class="field">📝 <span>Ăn trưa quán địa phương</span></div>
     </div>
     <div class="save-btn">Lưu</div>
   </div>

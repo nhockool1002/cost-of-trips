@@ -2,9 +2,12 @@
     <string name="app_name">Cost Of Trips</string>
 
     <string name="trip_list_title">My Trips</string>
-    <string name="trip_list_empty">No trips yet. Tap + to create your first trip.</string>
+    <string name="trip_list_greeting">Hello 👋</string>
+    <string name="trip_list_overview_total">Total spent</string>
+    <string name="trip_list_overview_subtitle">%1$d trips tracked</string>
+    <string name="trip_list_empty_title">No trips yet ✨</string>
+    <string name="trip_list_empty">Tap the button below to plan your first trip.</string>
     <string name="trip_list_add_trip">Add trip</string>
-    <string name="trip_list_total_label">Total: %1$s</string>
 
     <string name="action_settings">Settings</string>
 
@@ -17,9 +20,10 @@
     <string name="create_trip_save">Save</string>
     <string name="create_trip_name_required">Trip name is required</string>
 
-    <string name="trip_detail_total_label">Total spent: %1$s</string>
+    <string name="trip_detail_total_label">Total spent</string>
     <string name="trip_detail_add_expense">Add expense</string>
-    <string name="trip_detail_empty_expenses">No expenses yet. Tap + to add one.</string>
+    <string name="trip_detail_empty_title">No expenses yet 🧾</string>
+    <string name="trip_detail_empty_expenses">Tap the button below to log your first expense.</string>
 
     <string name="add_expense_title">New Expense</string>
     <string name="add_expense_category_label">Category</string>
@@ -37,13 +41,19 @@
 
     <string name="settings_title">Settings</string>
     <string name="settings_language_label">Language</string>
+    <string name="settings_language_system">System default</string>
     <string name="settings_theme_label">Theme</string>
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
     <string name="settings_theme_system">System default</string>
+    <string name="settings_data_label">Data</string>
     <string name="settings_export_data">Export all data</string>
     <string name="settings_export_success">Data exported to Downloads</string>
     <string name="settings_export_failure">Export failed</string>
+    <string name="settings_about_title">About</string>
+    <string name="settings_about_tagline">Track every trip\'s cost — simple and private.</string>
+    <string name="settings_about_credit">Made with ❤️ by NhutNguyen © 2026</string>
+    <string name="settings_about_version">Version %1$s</string>
 
     <string name="common_cancel">Cancel</string>
     <string name="common_back">Back</string>

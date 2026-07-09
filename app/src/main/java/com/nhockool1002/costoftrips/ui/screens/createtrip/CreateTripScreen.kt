@@ -14,6 +14,7 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -78,6 +79,7 @@ fun CreateTripScreen(
                 value = name,
                 onValueChange = { name = it; showError = false },
                 label = { Text(stringResource(R.string.create_trip_name_label)) },
+                leadingIcon = { Text("🧳") },
                 isError = showError,
                 supportingText = {
                     if (showError) Text(stringResource(R.string.create_trip_name_required))
@@ -88,6 +90,7 @@ fun CreateTripScreen(
                 value = destination,
                 onValueChange = { destination = it },
                 label = { Text(stringResource(R.string.create_trip_destination_label)) },
+                leadingIcon = { Text("📍") },
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
@@ -95,6 +98,7 @@ fun CreateTripScreen(
                 onValueChange = {},
                 readOnly = true,
                 label = { Text(stringResource(R.string.create_trip_start_date_label)) },
+                leadingIcon = { Text("📅") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { datePickerTarget = DateTarget.START }
@@ -104,6 +108,7 @@ fun CreateTripScreen(
                 onValueChange = {},
                 readOnly = true,
                 label = { Text(stringResource(R.string.create_trip_end_date_label)) },
+                leadingIcon = { Text("🏁") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { datePickerTarget = DateTarget.END }
@@ -112,6 +117,7 @@ fun CreateTripScreen(
                 value = note,
                 onValueChange = { note = it },
                 label = { Text(stringResource(R.string.create_trip_note_label)) },
+                leadingIcon = { Text("📝") },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 2
             )
@@ -123,9 +129,12 @@ fun CreateTripScreen(
                         viewModel.createTrip(name, destination, startDate, endDate, note, onTripCreated)
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(100),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
             ) {
-                Text(stringResource(R.string.create_trip_save))
+                Text(stringResource(R.string.create_trip_save), style = MaterialTheme.typography.titleMedium)
             }
         }
     }

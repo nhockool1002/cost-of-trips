@@ -2,9 +2,12 @@
     <string name="app_name">Chi Phí Chuyến Đi</string>
 
     <string name="trip_list_title">Chuyến đi của tôi</string>
-    <string name="trip_list_empty">Chưa có chuyến đi nào. Nhấn + để tạo chuyến đi đầu tiên.</string>
+    <string name="trip_list_greeting">Xin chào 👋</string>
+    <string name="trip_list_overview_total">Tổng đã chi</string>
+    <string name="trip_list_overview_subtitle">%1$d chuyến đi đang theo dõi</string>
+    <string name="trip_list_empty_title">Chưa có chuyến đi nào ✨</string>
+    <string name="trip_list_empty">Nhấn nút bên dưới để lên kế hoạch cho chuyến đi đầu tiên.</string>
     <string name="trip_list_add_trip">Thêm chuyến đi</string>
-    <string name="trip_list_total_label">Tổng: %1$s</string>
 
     <string name="action_settings">Cài đặt</string>
 
@@ -17,9 +20,10 @@
     <string name="create_trip_save">Lưu</string>
     <string name="create_trip_name_required">Vui lòng nhập tên chuyến đi</string>
 
-    <string name="trip_detail_total_label">Tổng chi phí: %1$s</string>
+    <string name="trip_detail_total_label">Tổng chi phí</string>
     <string name="trip_detail_add_expense">Thêm chi phí</string>
-    <string name="trip_detail_empty_expenses">Chưa có chi phí nào. Nhấn + để thêm.</string>
+    <string name="trip_detail_empty_title">Chưa có chi phí nào 🧾</string>
+    <string name="trip_detail_empty_expenses">Nhấn nút bên dưới để ghi khoản chi đầu tiên.</string>
 
     <string name="add_expense_title">Chi phí mới</string>
     <string name="add_expense_category_label">Hạng mục</string>
@@ -37,13 +41,19 @@
 
     <string name="settings_title">Cài đặt</string>
     <string name="settings_language_label">Ngôn ngữ</string>
+    <string name="settings_language_system">Theo hệ thống</string>
     <string name="settings_theme_label">Giao diện</string>
     <string name="settings_theme_light">Sáng</string>
     <string name="settings_theme_dark">Tối</string>
     <string name="settings_theme_system">Theo hệ thống</string>
+    <string name="settings_data_label">Dữ liệu</string>
     <string name="settings_export_data">Xuất toàn bộ dữ liệu</string>
     <string name="settings_export_success">Đã xuất dữ liệu vào thư mục Downloads</string>
     <string name="settings_export_failure">Xuất dữ liệu thất bại</string>
+    <string name="settings_about_title">Giới thiệu</string>
+    <string name="settings_about_tagline">Ghi lại chi phí của mọi chuyến đi — đơn giản và riêng tư.</string>
+    <string name="settings_about_credit">Thực hiện bởi NhutNguyen © 2026</string>
+    <string name="settings_about_version">Phiên bản %1$s</string>
 
     <string name="common_cancel">Hủy</string>
     <string name="common_back">Quay lại</string>

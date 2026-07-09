@@ -4,14 +4,11 @@
 <meta charset="UTF-8" />
 <style>
   :root {
-    --gold: #F2B705;
     --bg-light: #FFFBFE;
     --surface-light: #FFFFFF;
-    --card-light: #F7F2FA;
+    --card-light: #F1EEF7;
     --ink-light: #1B1B1F;
-    --muted-light: #49454F;
-    --primary-container-light: #DCE1FF;
-    --on-primary-container-light: #001947;
+    --muted-light: #5B5766;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { background: #000; }
@@ -39,51 +36,64 @@
   .status-icons .bar { width: 44px; height: 22px; border: 3px solid var(--ink-light); border-radius: 4px; position: relative; }
   .status-icons .bar::after { content: ""; position: absolute; top: 3px; left: 3px; bottom: 3px; width: 30px; background: var(--ink-light); border-radius: 2px; }
   .top-bar {
-    height: 168px;
+    height: 148px;
     background: var(--surface-light);
     display: flex;
     align-items: center;
-    gap: 32px;
+    gap: 28px;
     padding: 0 24px;
   }
-  .top-bar h1 { font-size: 42px; font-weight: 600; }
+  .top-bar h1 { font-size: 38px; font-weight: 700; }
   .icon-btn {
     width: 88px; height: 88px;
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-size: 44px;
   }
-  .total-line {
-    padding: 24px 48px 8px;
-    font-size: 40px;
-    font-weight: 600;
+  .content { padding: 16px 32px; display: flex; flex-direction: column; gap: 22px; }
+  .hero {
+    background: linear-gradient(135deg, #3B5CA8 0%, #2C6B8F 55%, #1E7A6E 100%);
+    border-radius: 40px;
+    padding: 36px 44px;
+    color: white;
   }
-  .content { padding: 16px 32px; display: flex; flex-direction: column; gap: 20px; }
+  .hero .label { font-size: 28px; opacity: 0.85; font-weight: 600; }
+  .hero .value { font-size: 54px; font-weight: 800; margin-top: 8px; }
   .expense {
     background: var(--card-light);
-    border-radius: 24px;
-    padding: 32px 40px;
+    border-radius: 28px;
+    padding: 26px 28px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 20px;
   }
-  .expense .left .cat { font-size: 36px; font-weight: 700; margin-bottom: 8px; }
-  .expense .left .note { font-size: 28px; color: var(--muted-light); }
-  .expense .right { font-size: 34px; font-weight: 600; display: flex; align-items: center; gap: 24px; }
-  .expense .right .trash { opacity: 0.55; }
+  .expense .icon-badge {
+    width: 84px; height: 84px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px;
+    flex-shrink: 0;
+  }
+  .expense .info { flex: 1; }
+  .expense .cat { font-size: 32px; font-weight: 700; }
+  .expense .note { font-size: 26px; color: var(--muted-light); margin-top: 2px; }
+  .expense .amount { font-size: 32px; font-weight: 700; margin-right: 6px; }
+  .expense .trash { opacity: 0.45; }
   .fab {
     position: absolute;
-    right: 56px;
+    right: 48px;
     bottom: 90px;
-    width: 168px; height: 168px;
-    border-radius: 48px;
-    background: var(--primary-container-light);
-    color: var(--on-primary-container-light);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 76px;
-    font-weight: 300;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+    height: 132px;
+    padding: 0 44px 0 38px;
+    border-radius: 44px;
+    background: #DCE1FF;
+    color: #001947;
+    display: flex; align-items: center; gap: 16px;
+    font-size: 34px;
+    font-weight: 700;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.2);
   }
+  .fab .plus { font-size: 44px; font-weight: 400; }
   .nav-pill {
     position: absolute;
     bottom: 0; left: 0; right: 0;
@@ -107,45 +117,44 @@
     <div class="icon-btn">←</div>
     <h1>Đà Lạt Xuân 2026</h1>
   </div>
-  <div class="total-line">Tổng chi phí: 4.250.000 ₫</div>
   <div class="content">
+    <div class="hero">
+      <div class="label">Tổng chi phí</div>
+      <div class="value">4.250.000 ₫</div>
+    </div>
+
     <div class="expense">
-      <div class="left">
-        <div class="cat">Di chuyển</div>
-        <div class="note">Vé xe khách</div>
-      </div>
-      <div class="right">850.000 ₫ <svg class="trash" width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" stroke="#49454F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="icon-badge" style="background:#D6E4FF">🚗</div>
+      <div class="info"><div class="cat">Di chuyển</div><div class="note">Vé xe khách</div></div>
+      <div class="amount">850.000 ₫</div>
+      <svg class="trash" width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" stroke="#5B5766" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
     <div class="expense">
-      <div class="left">
-        <div class="cat">Chỗ ở</div>
-        <div class="note">Homestay 3 đêm</div>
-      </div>
-      <div class="right">1.800.000 ₫ <svg class="trash" width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" stroke="#49454F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="icon-badge" style="background:#E8DAFF">🏨</div>
+      <div class="info"><div class="cat">Chỗ ở</div><div class="note">Homestay 3 đêm</div></div>
+      <div class="amount">1.800.000 ₫</div>
+      <svg class="trash" width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" stroke="#5B5766" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
     <div class="expense">
-      <div class="left">
-        <div class="cat">Ăn uống</div>
-        <div class="note">Ăn sáng, tối</div>
-      </div>
-      <div class="right">950.000 ₫ <svg class="trash" width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" stroke="#49454F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="icon-badge" style="background:#FFE0C2">🍜</div>
+      <div class="info"><div class="cat">Ăn uống</div><div class="note">Ăn sáng, tối</div></div>
+      <div class="amount">950.000 ₫</div>
+      <svg class="trash" width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" stroke="#5B5766" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
     <div class="expense">
-      <div class="left">
-        <div class="cat">Giải trí</div>
-        <div class="note">Vé tham quan</div>
-      </div>
-      <div class="right">400.000 ₫ <svg class="trash" width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" stroke="#49454F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="icon-badge" style="background:#FFD6E8">🎉</div>
+      <div class="info"><div class="cat">Giải trí</div><div class="note">Vé tham quan</div></div>
+      <div class="amount">400.000 ₫</div>
+      <svg class="trash" width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" stroke="#5B5766" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
     <div class="expense">
-      <div class="left">
-        <div class="cat">Mua sắm</div>
-        <div class="note">Quà lưu niệm</div>
-      </div>
-      <div class="right">250.000 ₫ <svg class="trash" width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" stroke="#49454F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="icon-badge" style="background:#D1F5E0">🛍️</div>
+      <div class="info"><div class="cat">Mua sắm</div><div class="note">Quà lưu niệm</div></div>
+      <div class="amount">250.000 ₫</div>
+      <svg class="trash" width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" stroke="#5B5766" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
   </div>
-  <div class="fab">+</div>
+  <div class="fab"><span class="plus">+</span>Thêm chi phí</div>
   <div class="nav-pill"><div class="bar"></div></div>
 </div>
 </body>
