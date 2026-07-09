@@ -98,6 +98,13 @@ fun AboutScreen(onBack: () -> Unit) {
                 modifier = Modifier.padding(top = 16.dp)
             )
             Text(
+                stringResource(R.string.settings_about_description),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 12.dp)
+            )
+            Text(
                 stringResource(R.string.settings_about_credit),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary,

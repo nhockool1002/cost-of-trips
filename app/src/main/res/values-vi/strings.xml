@@ -61,7 +61,8 @@
     <string name="settings_export_failure">Xuất dữ liệu thất bại</string>
     <string name="settings_about_title">Giới thiệu</string>
     <string name="settings_about_tagline">Ghi lại chi phí của mọi chuyến đi — đơn giản và riêng tư.</string>
-    <string name="settings_about_credit">Thực hiện bởi NhutNguyen © 2026</string>
+    <string name="settings_about_description">Tạo chuyến đi, ghi lại từng khoản chi ngay khi phát sinh, và để Cost of Trips lo phần tính toán. Xem thống kê chi tiết để biết tiền đã đi đâu, xuất dữ liệu bất cứ lúc nào, và mọi thứ đều được lưu ngay trên thiết bị — không cần tài khoản, không đám mây, không theo dõi.</string>
+    <string name="settings_about_credit">Thực hiện bởi Dev1002 © 2026</string>
     <string name="settings_about_version">Phiên bản %1$s</string>
     <string name="about_coffee_button">Buy me a coffee</string>
 

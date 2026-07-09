@@ -18,14 +18,14 @@
 </p>
 
 <p align="center">
-  <img src="branding/store/feature-graphic.png" alt="Cost Of Trips banner" width="100%" />
+  <img src="branding/store/feature-graphic.png" alt="Cost Of Trips — màn hình Chuyến đi của tôi" width="320" />
 </p>
 
 ## Giới thiệu
 
 **Cost Of Trips** giúp bạn lên kế hoạch và theo dõi chi phí cho mọi chuyến đi — từ những chuyến phượt cuối tuần đến công tác dài ngày. Ghi từng khoản chi theo hạng mục, xem tổng quan chi tiêu ngay trên màn hình chính, và xuất dữ liệu bất cứ lúc nào. Toàn bộ xử lý diễn ra ngay trên điện thoại của bạn — không máy chủ, không theo dõi, không quảng cáo.
 
-Thực hiện bởi **NhutNguyen © 2026**.
+Thực hiện bởi **Dev1002 © 2026**.
 
 ## Ảnh chụp màn hình
 
@@ -75,4 +75,4 @@ Mỗi khi một [GitHub Release](https://github.com/nhockool1002/cost-of-trips/r
 
 ---
 
-<p align="center">Made with ❤️ by <strong>NhutNguyen</strong> © 2026</p>
+<p align="center">Made with ❤️ by <strong>Dev1002</strong> © 2026</p>
