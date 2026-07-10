@@ -74,8 +74,16 @@ fun TripDetailScreen(
 
     val lazyListState = rememberLazyListState()
     val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
-        orderedExpenses = orderedExpenses.toMutableList().apply {
-            add(to.index, removeAt(from.index))
+        // from/to indices are positions within the whole LazyColumn (which also
+        // has the "stat-card" item above the list), not positions within
+        // orderedExpenses, so they must be resolved by key instead of used
+        // directly or a drag near the list edges crashes with IndexOutOfBoundsException.
+        val fromIndex = orderedExpenses.indexOfFirst { it.id == from.key }
+        val toIndex = orderedExpenses.indexOfFirst { it.id == to.key }
+        if (fromIndex != -1 && toIndex != -1) {
+            orderedExpenses = orderedExpenses.toMutableList().apply {
+                add(toIndex, removeAt(fromIndex))
+            }
         }
     }
 
