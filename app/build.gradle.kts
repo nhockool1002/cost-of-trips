@@ -12,8 +12,8 @@ android {
         applicationId = "com.nhockool1002.costoftrips"
         minSdk = 24
         targetSdk = 35
-        versionCode = 3
-        versionName = "1.0.0.a1"
+        versionCode = 4
+        versionName = "1.0.0.a2"
 
         // The app only ships English (default) + Vietnamese strings, but
         // AndroidX libraries (AppCompat, Compose, etc.) bundle their own
@@ -47,6 +47,12 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             if (hasReleaseSigningEnv) {
                 signingConfig = signingConfigs.getByName("release")
+            }
+            // Bundles native debug symbols (from Room/SQLite's native libs) into the
+            // AAB automatically, so Play Console stops warning about missing symbols
+            // instead of requiring a manual upload.
+            ndk {
+                debugSymbolLevel = "FULL"
             }
         }
     }
