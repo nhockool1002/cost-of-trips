@@ -3,6 +3,7 @@ package com.nhockool1002.costoftrips.ui.screens.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nhockool1002.costoftrips.data.export.DataExporter
+import com.nhockool1002.costoftrips.data.preferences.AppCurrency
 import com.nhockool1002.costoftrips.data.preferences.ThemeMode
 import com.nhockool1002.costoftrips.data.preferences.UserPreferencesRepository
 import com.nhockool1002.costoftrips.data.repository.TripRepository
@@ -23,9 +24,21 @@ class SettingsViewModel(
         viewModelScope.launch { preferencesRepository.setThemeMode(mode) }
     }
 
+    val currency: StateFlow<AppCurrency> = preferencesRepository.currency
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppCurrency.VND)
+
+    fun setCurrency(currency: AppCurrency) {
+        viewModelScope.launch { preferencesRepository.setCurrency(currency) }
+    }
+
     suspend fun exportData(): String {
         val trips = tripRepository.getAllTrips()
         val expenses = tripRepository.getAllExpenses()
         return DataExporter.buildJson(trips, expenses)
+    }
+
+    suspend fun importData(json: String): Result<Int> = runCatching {
+        val importedTrips = DataExporter.parseJson(json)
+        tripRepository.importTrips(importedTrips)
     }
 }

@@ -1,10 +1,18 @@
 package com.nhockool1002.costoftrips.util
 
+import androidx.compose.runtime.compositionLocalOf
+import com.nhockool1002.costoftrips.data.preferences.AppCurrency
 import java.text.NumberFormat
-import java.util.Locale
+
+val LocalCurrency = compositionLocalOf { AppCurrency.VND }
 
 object CurrencyFormatter {
-    private val formatter = NumberFormat.getNumberInstance(Locale("vi", "VN"))
-
-    fun format(amount: Double): String = "${formatter.format(amount)} ₫"
+    fun format(amount: Double, currency: AppCurrency = AppCurrency.VND): String {
+        val formatter = NumberFormat.getNumberInstance(currency.groupingLocale).apply {
+            minimumFractionDigits = currency.decimalDigits
+            maximumFractionDigits = currency.decimalDigits
+        }
+        val number = formatter.format(amount)
+        return if (currency.symbolBefore) "${currency.symbol}$number" else "$number ${currency.symbol}"
+    }
 }

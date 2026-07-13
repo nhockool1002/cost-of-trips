@@ -8,6 +8,8 @@
     <string name="trip_list_empty_title">Chưa có chuyến đi nào ✨</string>
     <string name="trip_list_empty">Nhấn nút bên dưới để lên kế hoạch cho chuyến đi đầu tiên.</string>
     <string name="trip_list_add_trip">Thêm chuyến đi</string>
+    <string name="trip_list_search_placeholder">Tìm kiếm chuyến đi</string>
+    <string name="trip_list_search_no_results">Không tìm thấy chuyến đi phù hợp</string>
     <string name="nav_trips">Chuyến đi</string>
     <string name="nav_statistics">Thống kê</string>
     <string name="trip_list_analytics_title">Phân tích chi tiêu</string>
@@ -55,10 +57,14 @@
     <string name="settings_theme_light">Sáng</string>
     <string name="settings_theme_dark">Tối</string>
     <string name="settings_theme_system">Theo hệ thống</string>
+    <string name="settings_currency_label">Đơn vị tiền tệ</string>
     <string name="settings_data_label">Dữ liệu</string>
     <string name="settings_export_data">Xuất toàn bộ dữ liệu</string>
     <string name="settings_export_success">Đã xuất dữ liệu vào thư mục Downloads</string>
     <string name="settings_export_failure">Xuất dữ liệu thất bại</string>
+    <string name="settings_import_data">Nhập dữ liệu</string>
+    <string name="settings_import_success">Đã nhập %1$d chuyến đi</string>
+    <string name="settings_import_failure">Nhập dữ liệu thất bại. Vui lòng kiểm tra lại file.</string>
     <string name="settings_about_title">Giới thiệu</string>
     <string name="settings_about_tagline">Ghi lại chi phí của mọi chuyến đi — đơn giản và riêng tư.</string>
     <string name="settings_about_description">Tạo chuyến đi, ghi lại từng khoản chi ngay khi phát sinh, và để Cost of Trips lo phần tính toán. Xem thống kê chi tiết để biết tiền đã đi đâu, xuất dữ liệu bất cứ lúc nào, và mọi thứ đều được lưu ngay trên thiết bị — không cần tài khoản, không đám mây, không theo dõi.</string>

@@ -19,12 +19,10 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,8 +46,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nhockool1002.costoftrips.R
 import com.nhockool1002.costoftrips.ui.appViewModelFactory
+import com.nhockool1002.costoftrips.ui.screens.common.CuteTextField
 import com.nhockool1002.costoftrips.ui.screens.common.GradientStatCard
 import com.nhockool1002.costoftrips.util.CurrencyFormatter
+import com.nhockool1002.costoftrips.util.LocalCurrency
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -69,16 +70,28 @@ private fun formatTripDuration(startDate: Long, endDate: Long): String {
 @Composable
 fun TripListScreen(
     onTripClick: (Long) -> Unit,
-    onAddTripClick: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
     val context = LocalContext.current
     val viewModel: TripListViewModel = viewModel(factory = appViewModelFactory(context))
     val uiState by viewModel.uiState.collectAsState()
     val scope = rememberCoroutineScope()
+    val currency = LocalCurrency.current
 
     var orderedTrips by remember { mutableStateOf(uiState.trips) }
     LaunchedEffect(uiState.trips) { orderedTrips = uiState.trips }
+
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    val displayedTrips = remember(orderedTrips, searchQuery) {
+        if (searchQuery.isBlank()) {
+            orderedTrips
+        } else {
+            orderedTrips.filter {
+                it.trip.name.contains(searchQuery, ignoreCase = true) ||
+                    it.trip.destination.contains(searchQuery, ignoreCase = true)
+            }
+        }
+    }
 
     val lazyListState = rememberLazyListState()
     val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
@@ -105,13 +118,6 @@ fun TripListScreen(
                     }
                 }
             )
-        },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                text = { Text(stringResource(R.string.trip_list_add_trip)) },
-                icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                onClick = onAddTripClick
-            )
         }
     ) { padding ->
         LazyColumn(
@@ -119,8 +125,8 @@ fun TripListScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item(key = "greeting") {
                 Text(
@@ -131,16 +137,31 @@ fun TripListScreen(
             item(key = "hero") {
                 GradientStatCard(
                     title = stringResource(R.string.trip_list_overview_total),
-                    value = CurrencyFormatter.format(uiState.trips.sumOf { it.total }),
+                    value = CurrencyFormatter.format(uiState.trips.sumOf { it.total }, currency),
                     subtitle = stringResource(R.string.trip_list_overview_subtitle, uiState.trips.size)
                 )
+            }
+            if (orderedTrips.isNotEmpty()) {
+                item(key = "search") {
+                    CuteTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        label = stringResource(R.string.trip_list_search_placeholder),
+                        emoji = "🔍",
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
             if (orderedTrips.isEmpty()) {
                 item(key = "empty-state") {
                     EmptyState()
                 }
-            } else {
-                items(orderedTrips, key = { it.trip.id }) { item ->
+            } else if (displayedTrips.isEmpty()) {
+                item(key = "no-results") {
+                    NoSearchResults()
+                }
+            } else if (searchQuery.isBlank()) {
+                items(displayedTrips, key = { it.trip.id }) { item ->
                     ReorderableItem(reorderableState, key = item.trip.id) { _ ->
                         TripCard(
                             emoji = tripEmojiFor(item.trip.id),
@@ -159,6 +180,21 @@ fun TripListScreen(
                         )
                     }
                 }
+            } else {
+                // While filtering, indices no longer line up with the full
+                // orderedTrips list, so reordering is disabled and no drag
+                // handle is shown.
+                items(displayedTrips, key = { it.trip.id }) { item ->
+                    TripCard(
+                        emoji = tripEmojiFor(item.trip.id),
+                        name = item.trip.name,
+                        destination = item.trip.destination,
+                        duration = formatTripDuration(item.trip.startDate, item.trip.endDate),
+                        total = item.total,
+                        dragModifier = null,
+                        onClick = { onTripClick(item.trip.id) }
+                    )
+                }
             }
         }
     }
@@ -171,9 +207,10 @@ private fun TripCard(
     destination: String,
     duration: String,
     total: Double,
-    dragModifier: Modifier,
+    dragModifier: Modifier?,
     onClick: () -> Unit
 ) {
+    val currency = LocalCurrency.current
     Card(
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
@@ -181,11 +218,11 @@ private fun TripCard(
             .fillMaxWidth()
             .clickable(onClick = onClick)
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
-                        .size(52.dp)
+                        .size(48.dp)
                         .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
@@ -194,7 +231,7 @@ private fun TripCard(
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .padding(start = 14.dp)
+                        .padding(start = 12.dp)
                 ) {
                     Text(name, style = MaterialTheme.typography.titleMedium)
                     if (destination.isNotBlank()) {
@@ -205,16 +242,18 @@ private fun TripCard(
                         )
                     }
                 }
-                Text(
-                    "☰",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = dragModifier.padding(start = 8.dp)
-                )
+                if (dragModifier != null) {
+                    Text(
+                        "☰",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = dragModifier.padding(start = 6.dp)
+                    )
+                }
             }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 14.dp),
+                    .padding(top = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -226,16 +265,34 @@ private fun TripCard(
                 Box(
                     modifier = Modifier
                         .background(MaterialTheme.colorScheme.tertiaryContainer, RoundedCornerShape(999.dp))
-                        .padding(horizontal = 14.dp, vertical = 8.dp)
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Text(
-                        CurrencyFormatter.format(total),
+                        CurrencyFormatter.format(total, currency),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onTertiaryContainer
                     )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun NoSearchResults() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 48.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("🔍", style = MaterialTheme.typography.headlineMedium)
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            stringResource(R.string.trip_list_search_no_results),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

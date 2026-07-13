@@ -31,7 +31,6 @@ fun CostOfTripsNavHost(navController: NavHostController, modifier: Modifier = Mo
         composable(Screen.TripList.route) {
             TripListScreen(
                 onTripClick = { tripId -> navController.navigate(Screen.TripDetail.createRoute(tripId)) },
-                onAddTripClick = { navController.navigate(Screen.CreateTrip.route) },
                 onSettingsClick = { navController.navigate(Screen.Settings.route) }
             )
         }

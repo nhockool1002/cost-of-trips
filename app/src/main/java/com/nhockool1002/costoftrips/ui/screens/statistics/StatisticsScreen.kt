@@ -28,6 +28,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nhockool1002.costoftrips.R
 import com.nhockool1002.costoftrips.ui.appViewModelFactory
 import com.nhockool1002.costoftrips.util.CurrencyFormatter
+import com.nhockool1002.costoftrips.util.LocalCurrency
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,6 +36,7 @@ fun StatisticsScreen() {
     val context = LocalContext.current
     val viewModel: StatisticsViewModel = viewModel(factory = appViewModelFactory(context))
     val analytics by viewModel.analytics.collectAsState()
+    val currency = LocalCurrency.current
 
     Scaffold(
         topBar = {
@@ -52,14 +54,14 @@ fun StatisticsScreen() {
                 AnalyticsRow(
                     emoji = "📅",
                     label = stringResource(R.string.trip_list_analytics_monthly),
-                    value = CurrencyFormatter.format(analytics.monthlyTotal)
+                    value = CurrencyFormatter.format(analytics.monthlyTotal, currency)
                 )
             }
             item(key = "yearly") {
                 AnalyticsRow(
                     emoji = "🗓️",
                     label = stringResource(R.string.trip_list_analytics_yearly),
-                    value = CurrencyFormatter.format(analytics.yearlyTotal)
+                    value = CurrencyFormatter.format(analytics.yearlyTotal, currency)
                 )
             }
             item(key = "top-trip") {
@@ -67,7 +69,7 @@ fun StatisticsScreen() {
                     emoji = "🏆",
                     label = stringResource(R.string.trip_list_analytics_top_trip),
                     value = analytics.mostExpensiveTrip?.let {
-                        "${it.trip.name} · ${CurrencyFormatter.format(it.total)}"
+                        "${it.trip.name} · ${CurrencyFormatter.format(it.total, currency)}"
                     } ?: stringResource(R.string.trip_list_analytics_no_data)
                 )
             }

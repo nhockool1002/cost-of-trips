@@ -1,5 +1,6 @@
 package com.nhockool1002.costoftrips.data.repository
 
+import com.nhockool1002.costoftrips.data.export.ImportedTrip
 import com.nhockool1002.costoftrips.data.local.dao.ExpenseDao
 import com.nhockool1002.costoftrips.data.local.dao.TripDao
 import com.nhockool1002.costoftrips.data.local.entity.Expense
@@ -38,4 +39,12 @@ class TripRepository(
     suspend fun reorderTrips(orderedTripIds: List<Long>) = tripDao.reorder(orderedTripIds)
 
     suspend fun reorderExpenses(orderedExpenseIds: List<Long>) = expenseDao.reorder(orderedExpenseIds)
+
+    suspend fun importTrips(importedTrips: List<ImportedTrip>): Int {
+        importedTrips.forEach { (trip, expenses) ->
+            val tripId = tripDao.insert(trip)
+            expenses.forEach { expenseDao.insert(it.copy(tripId = tripId)) }
+        }
+        return importedTrips.size
+    }
 }

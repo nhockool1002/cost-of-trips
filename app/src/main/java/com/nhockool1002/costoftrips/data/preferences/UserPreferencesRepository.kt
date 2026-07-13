@@ -14,6 +14,7 @@ class UserPreferencesRepository(private val context: Context) {
 
     private object Keys {
         val THEME_MODE = stringPreferencesKey("theme_mode")
+        val CURRENCY = stringPreferencesKey("currency")
     }
 
     val themeMode = context.dataStore.data.map { prefs ->
@@ -22,5 +23,13 @@ class UserPreferencesRepository(private val context: Context) {
 
     suspend fun setThemeMode(mode: ThemeMode) {
         context.dataStore.edit { it[Keys.THEME_MODE] = mode.name }
+    }
+
+    val currency = context.dataStore.data.map { prefs ->
+        AppCurrency.fromCode(prefs[Keys.CURRENCY])
+    }
+
+    suspend fun setCurrency(currency: AppCurrency) {
+        context.dataStore.edit { it[Keys.CURRENCY] = currency.code }
     }
 }

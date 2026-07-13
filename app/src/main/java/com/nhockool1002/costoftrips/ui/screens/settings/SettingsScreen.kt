@@ -1,9 +1,12 @@
 package com.nhockool1002.costoftrips.ui.screens.settings
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
@@ -20,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nhockool1002.costoftrips.R
+import com.nhockool1002.costoftrips.data.preferences.AppCurrency
 import com.nhockool1002.costoftrips.data.preferences.AppLanguage
 import com.nhockool1002.costoftrips.data.preferences.ThemeMode
 import com.nhockool1002.costoftrips.ui.appViewModelFactory
@@ -53,6 +58,7 @@ fun SettingsScreen(onBack: () -> Unit, onAboutClick: () -> Unit) {
     val context = LocalContext.current
     val viewModel: SettingsViewModel = viewModel(factory = appViewModelFactory(context))
     val themeMode by viewModel.themeMode.collectAsState()
+    val currency by viewModel.currency.collectAsState()
     val scope = rememberCoroutineScope()
 
     val currentLocales = AppCompatDelegate.getApplicationLocales()
@@ -60,6 +66,19 @@ fun SettingsScreen(onBack: () -> Unit, onAboutClick: () -> Unit) {
         null
     } else {
         AppLanguage.fromCode(currentLocales[0]?.language)
+    }
+
+    val importSuccessTemplate = stringResource(R.string.settings_import_success)
+    val importFailureMessage = stringResource(R.string.settings_import_failure)
+    val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val json = context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+            val result = json?.let { viewModel.importData(it) }
+            val message = result?.getOrNull()?.let { count -> String.format(importSuccessTemplate, count) }
+                ?: importFailureMessage
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        }
     }
 
     Scaffold(
@@ -123,6 +142,16 @@ fun SettingsScreen(onBack: () -> Unit, onAboutClick: () -> Unit) {
                 }
             }
 
+            SettingsSection(icon = "💱", title = stringResource(R.string.settings_currency_label)) {
+                AppCurrency.entries.forEach { option ->
+                    LanguageOptionRow(
+                        label = "${option.code} (${option.symbol})",
+                        selected = option == currency,
+                        onClick = { viewModel.setCurrency(option) }
+                    )
+                }
+            }
+
             SettingsSection(icon = "📤", title = stringResource(R.string.settings_data_label)) {
                 Button(
                     onClick = {
@@ -136,6 +165,18 @@ fun SettingsScreen(onBack: () -> Unit, onAboutClick: () -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(stringResource(R.string.settings_export_data))
+                }
+                Button(
+                    onClick = { importLauncher.launch(arrayOf("application/json")) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                ) {
+                    Text(stringResource(R.string.settings_import_data))
                 }
             }
 
@@ -159,17 +200,40 @@ private fun sendBugReportEmail(context: Context, bodyTemplate: String, noEmailAp
     val errorId = (1..6)
         .map { "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".random() }
         .joinToString("")
-    val intent = Intent(Intent.ACTION_SENDTO).apply {
+    val recipient = "nhut.nguyenminh.it@gmail.com"
+    val subject = "[#COT-$errorId] Error Report"
+
+    val sendToIntent = Intent(Intent.ACTION_SENDTO).apply {
         data = Uri.parse("mailto:")
-        putExtra(Intent.EXTRA_EMAIL, arrayOf("nhut.nguyenminh.it@gmail.com"))
-        putExtra(Intent.EXTRA_SUBJECT, "[#COT-$errorId] Error Report")
+        putExtra(Intent.EXTRA_EMAIL, arrayOf(recipient))
+        putExtra(Intent.EXTRA_SUBJECT, subject)
         putExtra(Intent.EXTRA_TEXT, bodyTemplate)
     }
-    if (intent.resolveActivity(context.packageManager) != null) {
-        context.startActivity(intent)
-    } else {
-        Toast.makeText(context, noEmailAppMessage, Toast.LENGTH_LONG).show()
+    val gmailAppIntent = Intent(Intent.ACTION_SEND).apply {
+        type = "message/rfc822"
+        setPackage("com.google.android.gm")
+        putExtra(Intent.EXTRA_EMAIL, arrayOf(recipient))
+        putExtra(Intent.EXTRA_SUBJECT, subject)
+        putExtra(Intent.EXTRA_TEXT, bodyTemplate)
     }
+    val gmailWebIntent = Intent(Intent.ACTION_VIEW).apply {
+        data = Uri.parse(
+            "https://mail.google.com/mail/?view=cm&fs=1" +
+                "&to=${Uri.encode(recipient)}" +
+                "&su=${Uri.encode(subject)}" +
+                "&body=${Uri.encode(bodyTemplate)}"
+        )
+    }
+
+    for (intent in listOf(sendToIntent, gmailAppIntent, gmailWebIntent)) {
+        try {
+            context.startActivity(intent)
+            return
+        } catch (e: ActivityNotFoundException) {
+            // Try the next fallback.
+        }
+    }
+    Toast.makeText(context, noEmailAppMessage, Toast.LENGTH_LONG).show()
 }
 
 @Composable

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -20,11 +21,13 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.nhockool1002.costoftrips.data.preferences.AppCurrency
 import com.nhockool1002.costoftrips.data.preferences.ThemeMode
 import com.nhockool1002.costoftrips.ui.navigation.AppBottomBar
 import com.nhockool1002.costoftrips.ui.navigation.CostOfTripsNavHost
 import com.nhockool1002.costoftrips.ui.navigation.Screen
 import com.nhockool1002.costoftrips.ui.theme.CostOfTripsTheme
+import com.nhockool1002.costoftrips.util.LocalCurrency
 
 // AppCompatActivity (not plain ComponentActivity) is required here: only
 // AppCompatActivity registers itself with AppCompatDelegate so that calling
@@ -46,6 +49,7 @@ class MainActivity : AppCompatActivity() {
 fun CostOfTripsRoot() {
     val app = LocalContext.current.applicationContext as CostOfTripsApp
     val themeMode by app.userPreferencesRepository.themeMode.collectAsState(initial = ThemeMode.DARK)
+    val currency by app.userPreferencesRepository.currency.collectAsState(initial = AppCurrency.VND)
 
     val darkTheme = when (themeMode) {
         ThemeMode.LIGHT -> false
@@ -62,23 +66,25 @@ fun CostOfTripsRoot() {
     }
 
     CostOfTripsTheme(darkTheme = darkTheme) {
-        Surface(modifier = Modifier.fillMaxSize()) {
-            val navController = rememberNavController()
-            val backStackEntry by navController.currentBackStackEntryAsState()
-            val currentRoute = backStackEntry?.destination?.route
-            val showBottomBar = currentRoute == Screen.TripList.route || currentRoute == Screen.Statistics.route
+        CompositionLocalProvider(LocalCurrency provides currency) {
+            Surface(modifier = Modifier.fillMaxSize()) {
+                val navController = rememberNavController()
+                val backStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = backStackEntry?.destination?.route
+                val showBottomBar = currentRoute == Screen.TripList.route || currentRoute == Screen.Statistics.route
 
-            Scaffold(
-                bottomBar = {
-                    if (showBottomBar) {
-                        AppBottomBar(navController = navController, currentRoute = currentRoute)
+                Scaffold(
+                    bottomBar = {
+                        if (showBottomBar) {
+                            AppBottomBar(navController = navController, currentRoute = currentRoute)
+                        }
                     }
+                ) { innerPadding ->
+                    CostOfTripsNavHost(
+                        navController = navController,
+                        modifier = Modifier.padding(innerPadding)
+                    )
                 }
-            ) { innerPadding ->
-                CostOfTripsNavHost(
-                    navController = navController,
-                    modifier = Modifier.padding(innerPadding)
-                )
             }
         }
     }

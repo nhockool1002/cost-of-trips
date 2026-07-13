@@ -51,6 +51,7 @@ import com.nhockool1002.costoftrips.ui.screens.common.CategoryIcon
 import com.nhockool1002.costoftrips.ui.screens.common.GradientStatCard
 import com.nhockool1002.costoftrips.ui.screens.common.displayName
 import com.nhockool1002.costoftrips.util.CurrencyFormatter
+import com.nhockool1002.costoftrips.util.LocalCurrency
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -66,6 +67,7 @@ fun TripDetailScreen(
     val viewModel: TripDetailViewModel = viewModel(factory = appViewModelFactory(context, tripId))
     val uiState by viewModel.uiState.collectAsState()
     val scope = rememberCoroutineScope()
+    val currency = LocalCurrency.current
 
     var orderedExpenses by remember { mutableStateOf(uiState.expenses) }
     LaunchedEffect(uiState.expenses) { orderedExpenses = uiState.expenses }
@@ -117,7 +119,7 @@ fun TripDetailScreen(
             item(key = "stat-card") {
                 GradientStatCard(
                     title = stringResource(R.string.trip_detail_total_label),
-                    value = CurrencyFormatter.format(uiState.total)
+                    value = CurrencyFormatter.format(uiState.total, currency)
                 )
             }
             if (orderedExpenses.isEmpty()) {
@@ -221,7 +223,7 @@ private fun ExpenseCard(
                 }
             }
             Text(
-                CurrencyFormatter.format(expense.amount),
+                CurrencyFormatter.format(expense.amount, LocalCurrency.current),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.End,

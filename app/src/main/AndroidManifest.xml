@@ -5,6 +5,22 @@
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
 
+    <!-- Required on API 30+ (package visibility) so resolveActivity() and
+         startActivity() can actually see mail clients and the browser when
+         sending the bug report email; without this, checks silently fail
+         even when a matching app is installed. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="mailto" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <package android:name="com.google.android.gm" />
+    </queries>
+
     <application
         android:name=".CostOfTripsApp"
         android:allowBackup="true"

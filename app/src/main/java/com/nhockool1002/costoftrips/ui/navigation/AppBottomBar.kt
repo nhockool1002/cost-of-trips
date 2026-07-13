@@ -53,6 +53,12 @@ fun AppBottomBar(navController: NavHostController, currentRoute: String?) {
                 }
             }
         )
+        BottomBarItem(
+            emoji = "➕",
+            label = stringResource(R.string.trip_list_add_trip),
+            selected = false,
+            onClick = { navController.navigate(Screen.CreateTrip.route) }
+        )
     }
 }
 

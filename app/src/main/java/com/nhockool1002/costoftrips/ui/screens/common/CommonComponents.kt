@@ -124,9 +124,9 @@ fun GradientStatCard(
             .fillMaxWidth()
             .background(
                 Brush.linearGradient(listOf(GradientStart, GradientEnd)),
-                RoundedCornerShape(28.dp)
+                RoundedCornerShape(24.dp)
             )
-            .padding(28.dp)
+            .padding(20.dp)
     ) {
         Text(
             title,
@@ -138,14 +138,14 @@ fun GradientStatCard(
             color = androidx.compose.ui.graphics.Color.White,
             fontWeight = FontWeight.ExtraBold,
             fontSize = 34.sp,
-            modifier = Modifier.padding(top = 6.dp)
+            modifier = Modifier.padding(top = 4.dp)
         )
         if (subtitle != null) {
             Text(
                 subtitle,
                 color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.85f),
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(top = 4.dp)
+                modifier = Modifier.padding(top = 2.dp)
             )
         }
     }
