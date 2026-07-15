@@ -19,14 +19,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.nhockool1002.costoftrips.R
 import com.nhockool1002.costoftrips.data.local.entity.ExpenseCategory
 import com.nhockool1002.costoftrips.ui.theme.GradientEnd
 import com.nhockool1002.costoftrips.ui.theme.GradientStart
+import com.nhockool1002.costoftrips.util.TripStatus
 
 @Composable
 fun CategoryIcon(category: ExpenseCategory, modifier: Modifier = Modifier, size: Dp = 52.dp) {
@@ -112,21 +115,54 @@ fun CuteTextField(
     }
 }
 
+/** Small colored pill showing whether a trip is upcoming, ongoing, or already over. */
+@Composable
+fun TripStatusBadge(status: TripStatus, modifier: Modifier = Modifier) {
+    val label: String
+    val containerColor: Color
+    val contentColor: Color
+    when (status) {
+        TripStatus.UPCOMING -> {
+            label = stringResource(R.string.trip_status_upcoming)
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+        }
+        TripStatus.ONGOING -> {
+            label = stringResource(R.string.trip_status_ongoing)
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer
+            contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+        }
+        TripStatus.COMPLETED -> {
+            label = stringResource(R.string.trip_status_completed)
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+        }
+    }
+    Box(
+        modifier = modifier
+            .background(containerColor, RoundedCornerShape(999.dp))
+            .padding(horizontal = 10.dp, vertical = 4.dp)
+    ) {
+        Text(label, style = MaterialTheme.typography.labelSmall, color = contentColor)
+    }
+}
+
 @Composable
 fun GradientStatCard(
     title: String,
     value: String,
     subtitle: String? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    compact: Boolean = false
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
             .background(
                 Brush.linearGradient(listOf(GradientStart, GradientEnd)),
-                RoundedCornerShape(24.dp)
+                RoundedCornerShape(if (compact) 20.dp else 24.dp)
             )
-            .padding(20.dp)
+            .padding(if (compact) 14.dp else 20.dp)
     ) {
         Text(
             title,
@@ -137,8 +173,8 @@ fun GradientStatCard(
             value,
             color = androidx.compose.ui.graphics.Color.White,
             fontWeight = FontWeight.ExtraBold,
-            fontSize = 34.sp,
-            modifier = Modifier.padding(top = 4.dp)
+            fontSize = if (compact) 26.sp else 34.sp,
+            modifier = Modifier.padding(top = 2.dp)
         )
         if (subtitle != null) {
             Text(

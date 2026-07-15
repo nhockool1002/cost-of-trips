@@ -12,8 +12,8 @@ android {
         applicationId = "com.nhockool1002.costoftrips"
         minSdk = 24
         targetSdk = 35
-        versionCode = 6
-        versionName = "1.0.0.a4"
+        versionCode = 7
+        versionName = "1.0.0.a5"
 
         // The app only ships English (default) + Vietnamese strings, but
         // AndroidX libraries (AppCompat, Compose, etc.) bundle their own
@@ -112,6 +112,8 @@ dependencies {
     ksp("androidx.room:room-compiler:2.6.1")
 
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 }

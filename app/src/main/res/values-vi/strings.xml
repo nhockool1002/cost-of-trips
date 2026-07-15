@@ -17,8 +17,15 @@
     <string name="trip_list_analytics_yearly">Năm nay</string>
     <string name="trip_list_analytics_top_trip">Chuyến đắt nhất</string>
     <string name="trip_list_analytics_no_data">Chưa đủ dữ liệu</string>
+    <string name="trip_list_analytics_category_breakdown">Chi tiêu theo hạng mục</string>
+    <string name="trip_list_analytics_monthly_trend">6 tháng gần đây</string>
+    <string name="trip_status_upcoming">🔜 Sắp tới</string>
+    <string name="trip_status_ongoing">🟢 Đang diễn ra</string>
+    <string name="trip_status_completed">✅ Đã kết thúc</string>
 
     <string name="action_settings">Cài đặt</string>
+    <string name="action_search">Tìm kiếm</string>
+    <string name="action_close_search">Đóng tìm kiếm</string>
 
     <string name="create_trip_title">Chuyến đi mới</string>
     <string name="create_trip_name_label">Tên chuyến đi</string>
@@ -28,6 +35,7 @@
     <string name="create_trip_note_label">Ghi chú</string>
     <string name="create_trip_save">Lưu</string>
     <string name="create_trip_name_required">Vui lòng nhập tên chuyến đi</string>
+    <string name="create_trip_budget_label">Ngân sách (không bắt buộc)</string>
 
     <string name="trip_detail_total_label">Tổng chi phí</string>
     <string name="trip_detail_add_expense">Thêm chi phí</string>
@@ -35,6 +43,18 @@
     <string name="trip_detail_empty_expenses">Nhấn nút bên dưới để ghi khoản chi đầu tiên.</string>
     <string name="expense_delete_title">Xóa khoản chi này?</string>
     <string name="expense_delete_message">Hành động này không thể hoàn tác.</string>
+    <string name="trip_detail_members_label">👥 Thành viên</string>
+    <string name="trip_detail_add_member">Thêm người</string>
+    <string name="trip_detail_member_name_label">Tên</string>
+    <string name="trip_detail_balances_label">💸 Số dư nhóm</string>
+    <string name="trip_detail_settlement_line">%1$s nợ %2$s %3$s</string>
+    <string name="trip_detail_paid_by_split">💰 %1$s đã trả · chia %2$d người</string>
+    <string name="trip_detail_budget_label">🎯 Ngân sách</string>
+    <string name="trip_detail_budget_set">Đặt ngân sách</string>
+    <string name="trip_detail_budget_edit">Sửa ngân sách</string>
+    <string name="trip_detail_budget_dialog_label">Số tiền ngân sách</string>
+    <string name="trip_detail_budget_remaining">Còn lại %1$s</string>
+    <string name="trip_detail_budget_over">Vượt ngân sách %1$s</string>
 
     <string name="add_expense_title">Chi phí mới</string>
     <string name="add_expense_category_label">Hạng mục</string>
@@ -42,6 +62,8 @@
     <string name="add_expense_note_label">Ghi chú</string>
     <string name="add_expense_save">Lưu</string>
     <string name="add_expense_amount_required">Số tiền phải lớn hơn 0</string>
+    <string name="add_expense_paid_by_label">Người trả</string>
+    <string name="add_expense_split_with_label">Chia cho</string>
 
     <string name="category_transport">Di chuyển</string>
     <string name="category_accommodation">Chỗ ở</string>
@@ -58,6 +80,11 @@
     <string name="settings_theme_dark">Tối</string>
     <string name="settings_theme_system">Theo hệ thống</string>
     <string name="settings_currency_label">Đơn vị tiền tệ</string>
+    <string name="settings_reminders_label">🔔 Nhắc nhở</string>
+    <string name="settings_reminders_enable">Nhắc tôi cập nhật chi phí</string>
+    <string name="settings_reminders_interval_label">Tần suất nhắc</string>
+    <string name="settings_reminders_interval_hours">Mỗi %1$d giờ</string>
+    <string name="settings_reminders_permission_denied">Cần quyền thông báo để bật nhắc nhở</string>
     <string name="settings_data_label">Dữ liệu</string>
     <string name="settings_export_data">Xuất toàn bộ dữ liệu</string>
     <string name="settings_export_success">Đã xuất dữ liệu vào thư mục Downloads</string>
@@ -80,4 +107,10 @@
     <string name="common_cancel">Hủy</string>
     <string name="common_back">Quay lại</string>
     <string name="common_delete">Xóa</string>
+
+    <string name="notification_channel_name">Nhắc nhở chi phí</string>
+    <string name="notification_channel_description">Nhắc định kỳ để ghi lại chi phí chuyến đi</string>
+    <string name="notification_title">Đừng quên ghi lại chi phí! 💸</string>
+    <string name="notification_body_generic">Chạm để mở Cost of Trips và thêm chi tiêu hôm nay.</string>
+    <string name="notification_body_with_trip">Bạn đang trong chuyến \"%1$s\" — hãy thêm chi tiêu mới nhé.</string>
 </resources>

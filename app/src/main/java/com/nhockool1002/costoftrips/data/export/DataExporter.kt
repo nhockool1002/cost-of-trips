@@ -8,7 +8,9 @@ import android.os.Environment
 import android.provider.MediaStore
 import com.nhockool1002.costoftrips.data.local.entity.Expense
 import com.nhockool1002.costoftrips.data.local.entity.ExpenseCategory
+import com.nhockool1002.costoftrips.data.local.entity.ExpenseSplitMember
 import com.nhockool1002.costoftrips.data.local.entity.Trip
+import com.nhockool1002.costoftrips.data.local.entity.TripMember
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -16,17 +18,36 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// A parsed trip paired with its expenses, without ids: importing always
+// A parsed expense paired with the group-split members it references by name
+// rather than id, since member ids are re-assigned on import (see ImportedTrip).
+data class ImportedExpense(val expense: Expense, val paidByName: String?, val splitWithNames: List<String>)
+
+// A parsed trip with its members and expenses, without ids: importing always
 // inserts fresh rows (via Room's autoGenerate) rather than reusing the
-// exported ids, since those may collide with trips already in the database.
-data class ImportedTrip(val trip: Trip, val expenses: List<Expense>)
+// exported ids, since those may collide with rows already in the database.
+// Members are carried by name so they can be re-linked to their freshly
+// generated ids once inserted.
+data class ImportedTrip(val trip: Trip, val memberNames: List<String>, val expenses: List<ImportedExpense>)
 
 object DataExporter {
 
-    fun buildJson(trips: List<Trip>, expenses: List<Expense>): String {
+    fun buildJson(
+        trips: List<Trip>,
+        expenses: List<Expense>,
+        members: List<TripMember>,
+        splits: List<ExpenseSplitMember>
+    ): String {
         val expensesByTrip = expenses.groupBy { it.tripId }
+        val membersByTrip = members.groupBy { it.tripId }
+        val splitMemberIdsByExpense = splits.groupBy({ it.expenseId }, { it.memberId })
         val tripsArray = JSONArray()
         trips.forEach { trip ->
+            val tripMembers = membersByTrip[trip.id].orEmpty()
+            val memberNameById = tripMembers.associate { it.id to it.name }
+
+            val membersArray = JSONArray()
+            tripMembers.forEach { membersArray.put(it.name) }
+
             val expensesArray = JSONArray()
             expensesByTrip[trip.id].orEmpty().forEach { expense ->
                 expensesArray.put(
@@ -36,6 +57,12 @@ object DataExporter {
                         put("amount", expense.amount)
                         put("note", expense.note)
                         put("date", expense.date)
+                        expense.paidByMemberId?.let { memberNameById[it] }?.let { put("paidBy", it) }
+                        val splitWithArray = JSONArray()
+                        splitMemberIdsByExpense[expense.id].orEmpty()
+                            .mapNotNull { memberNameById[it] }
+                            .forEach { splitWithArray.put(it) }
+                        if (splitWithArray.length() > 0) put("splitWith", splitWithArray)
                     }
                 )
             }
@@ -47,6 +74,8 @@ object DataExporter {
                     put("startDate", trip.startDate)
                     put("endDate", trip.endDate)
                     put("note", trip.note)
+                    trip.budget?.let { put("budget", it) }
+                    put("members", membersArray)
                     put("expenses", expensesArray)
                 }
             )
@@ -64,8 +93,12 @@ object DataExporter {
                 destination = tripJson.optString("destination"),
                 startDate = tripJson.getLong("startDate"),
                 endDate = tripJson.getLong("endDate"),
-                note = tripJson.optString("note")
+                note = tripJson.optString("note"),
+                budget = if (tripJson.has("budget")) tripJson.optDouble("budget") else null
             )
+            val membersArray = tripJson.optJSONArray("members") ?: JSONArray()
+            val memberNames = (0 until membersArray.length()).map { membersArray.getString(it) }
+
             val expensesArray = tripJson.optJSONArray("expenses") ?: JSONArray()
             val expenses = (0 until expensesArray.length()).map { j ->
                 val expenseJson = expensesArray.getJSONObject(j)
@@ -74,15 +107,19 @@ object DataExporter {
                 } catch (e: IllegalArgumentException) {
                     ExpenseCategory.OTHER
                 }
-                Expense(
+                val expense = Expense(
                     tripId = 0,
                     category = category,
                     amount = expenseJson.getDouble("amount"),
                     note = expenseJson.optString("note"),
                     date = expenseJson.optLong("date", System.currentTimeMillis())
                 )
+                val paidByName = if (expenseJson.has("paidBy")) expenseJson.optString("paidBy") else null
+                val splitWithArray = expenseJson.optJSONArray("splitWith") ?: JSONArray()
+                val splitWithNames = (0 until splitWithArray.length()).map { splitWithArray.getString(it) }
+                ImportedExpense(expense, paidByName, splitWithNames)
             }
-            ImportedTrip(trip, expenses)
+            ImportedTrip(trip, memberNames, expenses)
         }
     }
 

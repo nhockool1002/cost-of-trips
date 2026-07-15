@@ -5,6 +5,10 @@
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
 
+    <!-- Required on API 33+ to show the expense-reminder notification; the
+         user is prompted for this at runtime when they enable reminders. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <!-- Required on API 30+ (package visibility) so resolveActivity() and
          startActivity() can actually see mail clients and the browser when
          sending the bug report email; without this, checks silently fail

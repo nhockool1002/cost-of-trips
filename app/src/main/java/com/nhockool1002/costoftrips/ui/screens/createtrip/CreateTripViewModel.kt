@@ -16,6 +16,7 @@ class CreateTripViewModel(
         startDate: Long,
         endDate: Long,
         note: String,
+        budget: Double?,
         onSaved: () -> Unit
     ) {
         if (name.isBlank()) return
@@ -26,7 +27,8 @@ class CreateTripViewModel(
                     destination = destination.trim(),
                     startDate = startDate,
                     endDate = endDate,
-                    note = note.trim()
+                    note = note.trim(),
+                    budget = budget
                 )
             )
             onSaved()

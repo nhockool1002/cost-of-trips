@@ -1,7 +1,9 @@
 package com.nhockool1002.costoftrips.data.preferences
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.map
@@ -15,6 +17,8 @@ class UserPreferencesRepository(private val context: Context) {
     private object Keys {
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val CURRENCY = stringPreferencesKey("currency")
+        val REMINDER_ENABLED = booleanPreferencesKey("reminder_enabled")
+        val REMINDER_INTERVAL_HOURS = intPreferencesKey("reminder_interval_hours")
     }
 
     val themeMode = context.dataStore.data.map { prefs ->
@@ -31,5 +35,17 @@ class UserPreferencesRepository(private val context: Context) {
 
     suspend fun setCurrency(currency: AppCurrency) {
         context.dataStore.edit { it[Keys.CURRENCY] = currency.code }
+    }
+
+    val reminderEnabled = context.dataStore.data.map { prefs -> prefs[Keys.REMINDER_ENABLED] ?: false }
+
+    suspend fun setReminderEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.REMINDER_ENABLED] = enabled }
+    }
+
+    val reminderIntervalHours = context.dataStore.data.map { prefs -> prefs[Keys.REMINDER_INTERVAL_HOURS] ?: 6 }
+
+    suspend fun setReminderIntervalHours(hours: Int) {
+        context.dataStore.edit { it[Keys.REMINDER_INTERVAL_HOURS] = hours }
     }
 }

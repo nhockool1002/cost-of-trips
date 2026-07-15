@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -22,8 +24,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -61,6 +66,16 @@ fun AddExpenseScreen(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    val members by viewModel.members.collectAsState()
+    var paidByMemberId by remember { mutableStateOf<Long?>(null) }
+    var splitMemberIds by remember { mutableStateOf<Set<Long>>(emptySet()) }
+    LaunchedEffect(members) {
+        if (members.isNotEmpty()) {
+            if (paidByMemberId == null) paidByMemberId = members.first().id
+            if (splitMemberIds.isEmpty()) splitMemberIds = members.map { it.id }.toSet()
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -83,7 +98,8 @@ fun AddExpenseScreen(
                     })
                 }
                 .padding(padding)
-                .padding(16.dp),
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(stringResource(R.string.add_expense_category_label), style = MaterialTheme.typography.labelLarge)
@@ -124,13 +140,51 @@ fun AddExpenseScreen(
                 minLines = 2,
                 modifier = Modifier.fillMaxWidth()
             )
+
+            if (members.isNotEmpty()) {
+                Text(stringResource(R.string.add_expense_paid_by_label), style = MaterialTheme.typography.labelLarge)
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    items(members, key = { it.id }) { member ->
+                        FilterChip(
+                            selected = paidByMemberId == member.id,
+                            onClick = { paidByMemberId = member.id },
+                            label = { Text(member.name) }
+                        )
+                    }
+                }
+
+                Text(stringResource(R.string.add_expense_split_with_label), style = MaterialTheme.typography.labelLarge)
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    items(members, key = { it.id }) { member ->
+                        FilterChip(
+                            selected = splitMemberIds.contains(member.id),
+                            onClick = {
+                                splitMemberIds = if (splitMemberIds.contains(member.id)) {
+                                    splitMemberIds - member.id
+                                } else {
+                                    splitMemberIds + member.id
+                                }
+                            },
+                            label = { Text(member.name) }
+                        )
+                    }
+                }
+            }
+
             Button(
                 onClick = {
                     val amount = amountText.toDoubleOrNull()
                     if (amount == null || amount <= 0.0) {
                         showError = true
                     } else {
-                        viewModel.addExpense(category, amount, note, onExpenseAdded)
+                        viewModel.addExpense(
+                            category = category,
+                            amount = amount,
+                            note = note,
+                            paidByMemberId = if (members.isNotEmpty()) paidByMemberId else null,
+                            splitMemberIds = if (members.isNotEmpty()) splitMemberIds.toList() else emptyList(),
+                            onSaved = onExpenseAdded
+                        )
                     }
                 },
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(100),

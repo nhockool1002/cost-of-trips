@@ -17,6 +17,7 @@ import com.nhockool1002.costoftrips.ui.screens.triplist.TripListViewModel
 class AppViewModelFactory(
     private val tripRepository: TripRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
+    private val appContext: Context,
     private val tripId: Long = 0
 ) : ViewModelProvider.Factory {
 
@@ -32,7 +33,7 @@ class AppViewModelFactory(
             modelClass.isAssignableFrom(AddExpenseViewModel::class.java) ->
                 AddExpenseViewModel(tripRepository, tripId) as T
             modelClass.isAssignableFrom(SettingsViewModel::class.java) ->
-                SettingsViewModel(userPreferencesRepository, tripRepository) as T
+                SettingsViewModel(userPreferencesRepository, tripRepository, appContext) as T
             modelClass.isAssignableFrom(StatisticsViewModel::class.java) ->
                 StatisticsViewModel(tripRepository) as T
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
@@ -42,5 +43,5 @@ class AppViewModelFactory(
 
 fun appViewModelFactory(context: Context, tripId: Long = 0): AppViewModelFactory {
     val app = context.applicationContext as CostOfTripsApp
-    return AppViewModelFactory(app.tripRepository, app.userPreferencesRepository, tripId)
+    return AppViewModelFactory(app.tripRepository, app.userPreferencesRepository, app, tripId)
 }

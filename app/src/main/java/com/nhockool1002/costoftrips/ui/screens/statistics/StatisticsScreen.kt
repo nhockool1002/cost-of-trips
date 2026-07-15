@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -27,6 +28,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nhockool1002.costoftrips.R
 import com.nhockool1002.costoftrips.ui.appViewModelFactory
+import com.nhockool1002.costoftrips.ui.screens.common.BarDatum
+import com.nhockool1002.costoftrips.ui.screens.common.DonutSlice
+import com.nhockool1002.costoftrips.ui.screens.common.SpendingDonutChart
+import com.nhockool1002.costoftrips.ui.screens.common.TrendBarChart
+import com.nhockool1002.costoftrips.ui.screens.common.badgeColor
+import com.nhockool1002.costoftrips.ui.screens.common.displayName
 import com.nhockool1002.costoftrips.util.CurrencyFormatter
 import com.nhockool1002.costoftrips.util.LocalCurrency
 
@@ -35,7 +42,8 @@ import com.nhockool1002.costoftrips.util.LocalCurrency
 fun StatisticsScreen() {
     val context = LocalContext.current
     val viewModel: StatisticsViewModel = viewModel(factory = appViewModelFactory(context))
-    val analytics by viewModel.analytics.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+    val analytics = uiState.analytics
     val currency = LocalCurrency.current
 
     Scaffold(
@@ -50,6 +58,21 @@ fun StatisticsScreen() {
             contentPadding = PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
+            item(key = "category-breakdown") {
+                ChartCard(title = stringResource(R.string.trip_list_analytics_category_breakdown)) {
+                    SpendingDonutChart(
+                        slices = uiState.categoryBreakdown.map {
+                            DonutSlice(it.category.displayName(), it.total, it.category.badgeColor())
+                        },
+                        centerLabel = CurrencyFormatter.format(uiState.categoryBreakdown.sumOf { it.total }, currency)
+                    )
+                }
+            }
+            item(key = "monthly-trend") {
+                ChartCard(title = stringResource(R.string.trip_list_analytics_monthly_trend)) {
+                    TrendBarChart(bars = uiState.monthlyTrend.map { BarDatum(it.label, it.total) })
+                }
+            }
             item(key = "monthly") {
                 AnalyticsRow(
                     emoji = "📅",
@@ -73,6 +96,20 @@ fun StatisticsScreen() {
                     } ?: stringResource(R.string.trip_list_analytics_no_data)
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun ChartCard(title: String, content: @Composable () -> Unit) {
+    Card(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 12.dp))
+            content()
         }
     }
 }

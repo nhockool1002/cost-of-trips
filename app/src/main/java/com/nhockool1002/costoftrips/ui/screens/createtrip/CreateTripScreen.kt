@@ -6,7 +6,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -33,11 +36,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nhockool1002.costoftrips.R
 import com.nhockool1002.costoftrips.ui.appViewModelFactory
 import com.nhockool1002.costoftrips.ui.screens.common.CuteTextField
+import com.nhockool1002.costoftrips.util.LocalCurrency
 import java.text.DateFormat
 import java.util.Date
 
@@ -55,6 +60,7 @@ fun CreateTripScreen(
     var name by rememberSaveable { mutableStateOf("") }
     var destination by rememberSaveable { mutableStateOf("") }
     var note by rememberSaveable { mutableStateOf("") }
+    var budgetText by rememberSaveable { mutableStateOf("") }
     var startDate by rememberSaveable { mutableStateOf(System.currentTimeMillis()) }
     var endDate by rememberSaveable { mutableStateOf(System.currentTimeMillis()) }
     var showError by rememberSaveable { mutableStateOf(false) }
@@ -84,7 +90,8 @@ fun CreateTripScreen(
                     })
                 }
                 .padding(padding)
-                .padding(16.dp),
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             CuteTextField(
@@ -122,6 +129,15 @@ fun CreateTripScreen(
                 modifier = Modifier.fillMaxWidth()
             )
             CuteTextField(
+                value = budgetText,
+                onValueChange = { budgetText = it },
+                label = stringResource(R.string.create_trip_budget_label),
+                emoji = "🎯",
+                suffix = { Text(LocalCurrency.current.symbol) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth()
+            )
+            CuteTextField(
                 value = note,
                 onValueChange = { note = it },
                 label = stringResource(R.string.create_trip_note_label),
@@ -134,7 +150,15 @@ fun CreateTripScreen(
                     if (name.isBlank()) {
                         showError = true
                     } else {
-                        viewModel.createTrip(name, destination, startDate, endDate, note, onTripCreated)
+                        viewModel.createTrip(
+                            name,
+                            destination,
+                            startDate,
+                            endDate,
+                            note,
+                            budgetText.toDoubleOrNull(),
+                            onTripCreated
+                        )
                     }
                 },
                 shape = RoundedCornerShape(100),

@@ -1,14 +1,19 @@
 package com.nhockool1002.costoftrips.ui.screens.settings
 
+import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -26,23 +31,33 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nhockool1002.costoftrips.R
@@ -59,7 +74,20 @@ fun SettingsScreen(onBack: () -> Unit, onAboutClick: () -> Unit) {
     val viewModel: SettingsViewModel = viewModel(factory = appViewModelFactory(context))
     val themeMode by viewModel.themeMode.collectAsState()
     val currency by viewModel.currency.collectAsState()
+    val reminderEnabled by viewModel.reminderEnabled.collectAsState()
+    val reminderIntervalHours by viewModel.reminderIntervalHours.collectAsState()
     val scope = rememberCoroutineScope()
+
+    val permissionDeniedMessage = stringResource(R.string.settings_reminders_permission_denied)
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            viewModel.setReminderEnabled(true)
+        } else {
+            Toast.makeText(context, permissionDeniedMessage, Toast.LENGTH_LONG).show()
+        }
+    }
 
     val currentLocales = AppCompatDelegate.getApplicationLocales()
     val currentLanguage: AppLanguage? = if (currentLocales.isEmpty) {
@@ -143,12 +171,55 @@ fun SettingsScreen(onBack: () -> Unit, onAboutClick: () -> Unit) {
             }
 
             SettingsSection(icon = "💱", title = stringResource(R.string.settings_currency_label)) {
-                AppCurrency.entries.forEach { option ->
-                    LanguageOptionRow(
-                        label = "${option.code} (${option.symbol})",
-                        selected = option == currency,
-                        onClick = { viewModel.setCurrency(option) }
+                CurrencyDropdown(selected = currency, onSelect = viewModel::setCurrency)
+            }
+
+            SettingsSection(icon = "🔔", title = stringResource(R.string.settings_reminders_label)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        stringResource(R.string.settings_reminders_enable),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f)
                     )
+                    Switch(
+                        checked = reminderEnabled,
+                        onCheckedChange = { checked ->
+                            if (checked) {
+                                val needsPermission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                                    ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+                                    PackageManager.PERMISSION_GRANTED
+                                if (needsPermission) {
+                                    notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                } else {
+                                    viewModel.setReminderEnabled(true)
+                                }
+                            } else {
+                                viewModel.setReminderEnabled(false)
+                            }
+                        }
+                    )
+                }
+                if (reminderEnabled) {
+                    Text(
+                        stringResource(R.string.settings_reminders_interval_label),
+                        style = MaterialTheme.typography.labelLarge,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(top = 4.dp)
+                    ) {
+                        items(listOf(3, 6, 12, 24)) { hours ->
+                            FilterChip(
+                                selected = reminderIntervalHours == hours,
+                                onClick = { viewModel.setReminderIntervalHours(hours) },
+                                label = { Text(stringResource(R.string.settings_reminders_interval_hours, hours)) }
+                            )
+                        }
+                    }
                 }
             }
 
@@ -249,6 +320,38 @@ private fun SettingsSection(icon: String, title: String, content: @Composable ()
                 Text(title, style = MaterialTheme.typography.titleMedium)
             }
             content()
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CurrencyDropdown(selected: AppCurrency, onSelect: (AppCurrency) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it },
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        OutlinedTextField(
+            value = "${selected.code} (${selected.symbol})",
+            onValueChange = {},
+            readOnly = true,
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth()
+        )
+        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            AppCurrency.entries.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text("${option.code} (${option.symbol})") },
+                    onClick = {
+                        onSelect(option)
+                        expanded = false
+                    }
+                )
+            }
         }
     }
 }
