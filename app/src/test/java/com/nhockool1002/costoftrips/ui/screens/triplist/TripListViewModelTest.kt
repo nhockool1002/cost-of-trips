@@ -41,7 +41,7 @@ class TripListViewModelTest {
     }
 
     @Test
-    fun `uiState reflects trips with their expense totals`() = runTest {
+    fun `uiState reflects trips with their expense totals`() = runTest(mainDispatcherRule.testDispatcher) {
         val tripId = repository.createTrip(Trip(name = "Da Lat", destination = "Da Lat", startDate = 0L, endDate = 0L))
         repository.addExpense(Expense(tripId = tripId, category = ExpenseCategory.FOOD, amount = 100.0))
         repository.addExpense(Expense(tripId = tripId, category = ExpenseCategory.TRANSPORT, amount = 50.0))
@@ -53,7 +53,7 @@ class TripListViewModelTest {
     }
 
     @Test
-    fun `analytics counts only expenses from the current month and year`() = runTest {
+    fun `analytics counts only expenses from the current month and year`() = runTest(mainDispatcherRule.testDispatcher) {
         val tripId = repository.createTrip(Trip(name = "Trip", destination = "", startDate = 0L, endDate = 0L))
         val now = System.currentTimeMillis()
         val longAgo = now - TimeUnit.DAYS.toMillis(400)
@@ -67,7 +67,7 @@ class TripListViewModelTest {
     }
 
     @Test
-    fun `mostExpensiveTrip ignores trips with zero spend`() = runTest {
+    fun `mostExpensiveTrip ignores trips with zero spend`() = runTest(mainDispatcherRule.testDispatcher) {
         repository.createTrip(Trip(name = "Empty trip", destination = "", startDate = 0L, endDate = 0L))
         val spentTripId = repository.createTrip(Trip(name = "Spent trip", destination = "", startDate = 0L, endDate = 0L))
         repository.addExpense(Expense(tripId = spentTripId, category = ExpenseCategory.FOOD, amount = 10.0))
@@ -78,7 +78,7 @@ class TripListViewModelTest {
     }
 
     @Test
-    fun `reorderTrips persists the new order`() = runTest {
+    fun `reorderTrips persists the new order`() = runTest(mainDispatcherRule.testDispatcher) {
         val id1 = repository.createTrip(Trip(name = "First", destination = "", startDate = 0L, endDate = 0L))
         val id2 = repository.createTrip(Trip(name = "Second", destination = "", startDate = 0L, endDate = 0L))
 

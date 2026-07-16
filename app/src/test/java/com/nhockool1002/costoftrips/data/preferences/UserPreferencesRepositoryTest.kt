@@ -2,7 +2,6 @@ package com.nhockool1002.costoftrips.data.preferences
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import java.io.File
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -21,10 +20,18 @@ class UserPreferencesRepositoryTest {
     @Before
     fun setUp() {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        // Robolectric reuses the same on-disk files dir across test methods within this
-        // class, so the "settings" DataStore file otherwise leaks state between tests.
-        File(context.filesDir, "datastore").deleteRecursively()
         repository = UserPreferencesRepository(context)
+        // preferencesDataStore() is a process-wide singleton keyed by file path (by design,
+        // to guard against two DataStore instances on one file), so it carries state across
+        // test methods in this JVM run regardless of Context identity - reset it via the
+        // repository's own API rather than touching the backing file, which wouldn't reset
+        // the already-cached in-memory DataStore instance anyway.
+        runTest {
+            repository.setThemeMode(ThemeMode.DARK)
+            repository.setCurrency(AppCurrency.VND)
+            repository.setReminderEnabled(false)
+            repository.setReminderIntervalHours(6)
+        }
     }
 
     @Test

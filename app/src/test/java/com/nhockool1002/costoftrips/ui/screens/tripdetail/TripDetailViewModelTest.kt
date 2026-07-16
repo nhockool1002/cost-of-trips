@@ -35,7 +35,7 @@ class TripDetailViewModelTest {
     fun setUp() {
         database = InMemoryDatabaseFactory.create()
         repository = TripRepository(database.tripDao(), database.expenseDao(), database.tripMemberDao(), database.expenseSplitDao())
-        runTest {
+        runTest(mainDispatcherRule.testDispatcher) {
             tripId = repository.createTrip(Trip(name = "Trip", destination = "", startDate = 0L, endDate = 0L))
         }
     }
@@ -48,7 +48,7 @@ class TripDetailViewModelTest {
     private fun viewModel() = TripDetailViewModel(repository, tripId)
 
     @Test
-    fun `total sums every expense regardless of split info`() = runTest {
+    fun `total sums every expense regardless of split info`() = runTest(mainDispatcherRule.testDispatcher) {
         repository.addExpense(Expense(tripId = tripId, category = ExpenseCategory.FOOD, amount = 40.0))
         repository.addExpense(Expense(tripId = tripId, category = ExpenseCategory.TRANSPORT, amount = 10.0))
 
@@ -57,7 +57,7 @@ class TripDetailViewModelTest {
     }
 
     @Test
-    fun `an evenly split expense produces a settlement from the non-payer to the payer`() = runTest {
+    fun `an evenly split expense produces a settlement from the non-payer to the payer`() = runTest(mainDispatcherRule.testDispatcher) {
         val an = repository.addMember(TripMember(tripId = tripId, name = "An"))
         val binh = repository.addMember(TripMember(tripId = tripId, name = "Binh"))
         repository.addExpense(
@@ -75,7 +75,7 @@ class TripDetailViewModelTest {
     }
 
     @Test
-    fun `an expense with a payer but no split members produces no settlements`() = runTest {
+    fun `an expense with a payer but no split members produces no settlements`() = runTest(mainDispatcherRule.testDispatcher) {
         val an = repository.addMember(TripMember(tripId = tripId, name = "An"))
         repository.addExpense(Expense(tripId = tripId, category = ExpenseCategory.FOOD, amount = 100.0, paidByMemberId = an))
 
@@ -84,7 +84,7 @@ class TripDetailViewModelTest {
     }
 
     @Test
-    fun `deleteExpense removes the expense`() = runTest {
+    fun `deleteExpense removes the expense`() = runTest(mainDispatcherRule.testDispatcher) {
         val expenseId = repository.addExpense(Expense(tripId = tripId, category = ExpenseCategory.OTHER, amount = 5.0))
         val vm = viewModel()
         val initial = vm.uiState.first { it.expenses.isNotEmpty() }
@@ -96,7 +96,7 @@ class TripDetailViewModelTest {
     }
 
     @Test
-    fun `addMember then deleteMember`() = runTest {
+    fun `addMember then deleteMember`() = runTest(mainDispatcherRule.testDispatcher) {
         val vm = viewModel()
         vm.addMember("An")
         repository.observeMembersForTrip(tripId).first { it.isNotEmpty() }
@@ -110,13 +110,13 @@ class TripDetailViewModelTest {
     }
 
     @Test
-    fun `addMember ignores a blank name`() = runTest {
+    fun `addMember ignores a blank name`() = runTest(mainDispatcherRule.testDispatcher) {
         viewModel().addMember("   ")
         assertTrue(repository.getAllMembers().isEmpty())
     }
 
     @Test
-    fun `setBudget updates the trip`() = runTest {
+    fun `setBudget updates the trip`() = runTest(mainDispatcherRule.testDispatcher) {
         val vm = viewModel()
         vm.uiState.first { it.trip != null }
 

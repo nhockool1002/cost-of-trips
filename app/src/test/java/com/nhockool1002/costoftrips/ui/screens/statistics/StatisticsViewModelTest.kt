@@ -41,7 +41,7 @@ class StatisticsViewModelTest {
     }
 
     @Test
-    fun `categoryBreakdown sums per category and omits categories with no spend`() = runTest {
+    fun `categoryBreakdown sums per category and omits categories with no spend`() = runTest(mainDispatcherRule.testDispatcher) {
         val tripId = repository.createTrip(Trip(name = "Trip", destination = "", startDate = 0L, endDate = 0L))
         repository.addExpense(Expense(tripId = tripId, category = ExpenseCategory.FOOD, amount = 30.0))
         repository.addExpense(Expense(tripId = tripId, category = ExpenseCategory.FOOD, amount = 20.0))
@@ -56,7 +56,7 @@ class StatisticsViewModelTest {
     }
 
     @Test
-    fun `categoryBreakdown is sorted by total descending`() = runTest {
+    fun `categoryBreakdown is sorted by total descending`() = runTest(mainDispatcherRule.testDispatcher) {
         val tripId = repository.createTrip(Trip(name = "Trip", destination = "", startDate = 0L, endDate = 0L))
         repository.addExpense(Expense(tripId = tripId, category = ExpenseCategory.FOOD, amount = 10.0))
         repository.addExpense(Expense(tripId = tripId, category = ExpenseCategory.TRANSPORT, amount = 90.0))
@@ -68,7 +68,7 @@ class StatisticsViewModelTest {
     }
 
     @Test
-    fun `monthlyTrend covers the last six months including the current one`() = runTest {
+    fun `monthlyTrend covers the last six months including the current one`() = runTest(mainDispatcherRule.testDispatcher) {
         val tripId = repository.createTrip(Trip(name = "Trip", destination = "", startDate = 0L, endDate = 0L))
         repository.addExpense(Expense(tripId = tripId, category = ExpenseCategory.FOOD, amount = 25.0, date = System.currentTimeMillis()))
 
@@ -79,7 +79,7 @@ class StatisticsViewModelTest {
     }
 
     @Test
-    fun `mostExpensiveTrip reflects analytics across all trips`() = runTest {
+    fun `mostExpensiveTrip reflects analytics across all trips`() = runTest(mainDispatcherRule.testDispatcher) {
         repository.createTrip(Trip(name = "Trip", destination = "", startDate = 0L, endDate = 0L))
             .let { tripId -> repository.addExpense(Expense(tripId = tripId, category = ExpenseCategory.FOOD, amount = 42.0)) }
 

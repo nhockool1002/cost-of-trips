@@ -34,7 +34,7 @@ class AddExpenseViewModelTest {
     fun setUp() {
         database = InMemoryDatabaseFactory.create()
         repository = TripRepository(database.tripDao(), database.expenseDao(), database.tripMemberDao(), database.expenseSplitDao())
-        runTest {
+        runTest(mainDispatcherRule.testDispatcher) {
             tripId = repository.createTrip(Trip(name = "Trip", destination = "", startDate = 0L, endDate = 0L))
         }
     }
@@ -45,14 +45,14 @@ class AddExpenseViewModelTest {
     }
 
     @Test
-    fun `members reflects trip members`() = runTest {
+    fun `members reflects trip members`() = runTest(mainDispatcherRule.testDispatcher) {
         repository.addMember(TripMember(tripId = tripId, name = "An"))
         val members = AddExpenseViewModel(repository, tripId).members.first { it.isNotEmpty() }
         assertEquals("An", members[0].name)
     }
 
     @Test
-    fun `addExpense persists the expense with its splits and trims the note`() = runTest {
+    fun `addExpense persists the expense with its splits and trims the note`() = runTest(mainDispatcherRule.testDispatcher) {
         val an = repository.addMember(TripMember(tripId = tripId, name = "An"))
         val viewModel = AddExpenseViewModel(repository, tripId)
 
@@ -76,7 +76,7 @@ class AddExpenseViewModelTest {
     }
 
     @Test
-    fun `addExpense ignores a non-positive amount`() = runTest {
+    fun `addExpense ignores a non-positive amount`() = runTest(mainDispatcherRule.testDispatcher) {
         val viewModel = AddExpenseViewModel(repository, tripId)
         var saved = false
         viewModel.addExpense(ExpenseCategory.OTHER, 0.0, "", null, emptyList()) { saved = true }

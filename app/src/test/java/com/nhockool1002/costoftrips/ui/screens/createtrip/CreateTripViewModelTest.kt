@@ -40,7 +40,7 @@ class CreateTripViewModelTest {
     }
 
     @Test
-    fun `createTrip trims strings and persists the trip`() = runTest {
+    fun `createTrip trims strings and persists the trip`() = runTest(mainDispatcherRule.testDispatcher) {
         var saved = false
         viewModel.createTrip(
             name = "  Da Lat  ",
@@ -61,7 +61,7 @@ class CreateTripViewModelTest {
     }
 
     @Test
-    fun `createTrip ignores a blank name`() = runTest {
+    fun `createTrip ignores a blank name`() = runTest(mainDispatcherRule.testDispatcher) {
         var saved = false
         viewModel.createTrip("   ", "Dest", 0L, 0L, "", null) { saved = true }
         assertTrue(repository.getAllTrips().isEmpty())

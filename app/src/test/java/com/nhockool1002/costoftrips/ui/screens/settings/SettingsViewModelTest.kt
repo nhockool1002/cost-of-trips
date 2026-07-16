@@ -55,35 +55,35 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `setThemeMode persists and is reflected in themeMode`() = runTest {
+    fun `setThemeMode persists and is reflected in themeMode`() = runTest(mainDispatcherRule.testDispatcher) {
         viewModel.setThemeMode(ThemeMode.LIGHT)
         val mode = preferencesRepository.themeMode.first { it == ThemeMode.LIGHT }
         assertEquals(ThemeMode.LIGHT, mode)
     }
 
     @Test
-    fun `setCurrency persists and is reflected in currency`() = runTest {
+    fun `setCurrency persists and is reflected in currency`() = runTest(mainDispatcherRule.testDispatcher) {
         viewModel.setCurrency(AppCurrency.USD)
         val currency = preferencesRepository.currency.first { it == AppCurrency.USD }
         assertEquals(AppCurrency.USD, currency)
     }
 
     @Test
-    fun `setReminderEnabled persists the flag`() = runTest {
+    fun `setReminderEnabled persists the flag`() = runTest(mainDispatcherRule.testDispatcher) {
         viewModel.setReminderEnabled(true)
         val enabled = preferencesRepository.reminderEnabled.first { it }
         assertTrue(enabled)
     }
 
     @Test
-    fun `setReminderIntervalHours persists the value`() = runTest {
+    fun `setReminderIntervalHours persists the value`() = runTest(mainDispatcherRule.testDispatcher) {
         viewModel.setReminderIntervalHours(12)
         val hours = preferencesRepository.reminderIntervalHours.first { it == 12 }
         assertEquals(12, hours)
     }
 
     @Test
-    fun `exportData then importData round-trips a trip into a fresh database`() = runTest {
+    fun `exportData then importData round-trips a trip into a fresh database`() = runTest(mainDispatcherRule.testDispatcher) {
         val tripId = tripRepository.createTrip(Trip(name = "Exported Trip", destination = "Hoi An", startDate = 0L, endDate = 0L))
         val memberId = tripRepository.addMember(TripMember(tripId = tripId, name = "An"))
         tripRepository.addExpense(
@@ -113,7 +113,7 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `importData with malformed JSON returns failure`() = runTest {
+    fun `importData with malformed JSON returns failure`() = runTest(mainDispatcherRule.testDispatcher) {
         val result = viewModel.importData("not json")
         assertTrue(result.isFailure)
     }
