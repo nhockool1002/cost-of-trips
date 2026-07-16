@@ -1,0 +1,147 @@
+name: Unit tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run unit tests
+        run: ./gradlew testDebugUnitTest --no-daemon
+
+      - name: Generate coverage report
+        if: always()
+        run: ./gradlew jacocoTestReport --no-daemon
+
+      - name: Publish test report
+        uses: mikepenz/action-junit-report@v4
+        if: always()
+        with:
+          report_paths: "app/build/test-results/testDebugUnitTest/TEST-*.xml"
+          check_name: "Unit test report"
+          detailed_summary: true
+          include_passed: true
+
+      - name: Upload test results (raw XML)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: app/build/test-results/testDebugUnitTest/
+          retention-days: 30
+
+      - name: Upload test report (HTML)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-report-html
+          path: app/build/reports/tests/testDebugUnitTest/
+          retention-days: 30
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-coverage-report
+          path: app/build/reports/jacoco/jacocoTestReport/
+          retention-days: 30
+
+      - name: Comment coverage on pull request
+        if: always() && github.event_name == 'pull_request'
+        uses: madrapps/jacoco-report@v1.7.1
+        with:
+          paths: app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: Coverage report (business logic; Composable UI is excluded)
+          min-coverage-overall: 0
+          min-coverage-changed-files: 0
+
+  # Publishes the JUnit HTML test report + JaCoCo HTML coverage report as a small static
+  # site on GitHub Pages, so the latest main results are viewable in a browser without
+  # downloading artifacts. Requires a one-time repo setting: Settings > Pages > Source =
+  # "GitHub Actions".
+  publish-report:
+    needs: test
+    if: always() && github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Download test report (HTML)
+        uses: actions/download-artifact@v4
+        with:
+          name: unit-test-report-html
+          path: site/tests
+
+      - name: Download coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: jacoco-coverage-report
+          path: site/coverage
+
+      - name: Build landing page
+        run: |
+          cat > site/index.html <<'EOF'
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <title>Cost Of Trips - Test &amp; Coverage Report</title>
+            <style>
+              body { font-family: system-ui, sans-serif; max-width: 640px; margin: 3rem auto; padding: 0 1rem; }
+              a { color: #2563eb; }
+              .card { border: 1px solid #ddd; border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem; }
+            </style>
+          </head>
+          <body>
+            <h1>Cost Of Trips &mdash; Latest Test Report</h1>
+            <p>Generated from the most recent push to <code>main</code>.</p>
+            <div class="card">
+              <h2><a href="tests/index.html">Unit test report</a></h2>
+              <p>Pass/fail results for every test, grouped by class.</p>
+            </div>
+            <div class="card">
+              <h2><a href="coverage/html/index.html">Coverage report</a></h2>
+              <p>JaCoCo line/branch coverage for the app's data layer, ViewModels, utils and notification scheduling (Composable UI is out of scope for JVM unit tests).</p>
+            </div>
+          </body>
+          </html>
+          EOF
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

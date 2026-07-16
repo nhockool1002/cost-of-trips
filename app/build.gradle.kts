@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
+    id("jacoco")
 }
 
 android {
@@ -41,6 +42,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            enableUnitTestCoverage = true
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
@@ -80,6 +84,13 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            isReturnDefaultValues = true
+        }
+    }
 }
 
 dependencies {
@@ -116,4 +127,72 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.9.1")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
+
+    // Testing
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    // Android's built-in org.json classes are stubs on the host JVM; this pulls
+    // in a real implementation so DataExporter's JSON logic can be unit-tested
+    // without Robolectric.
+    testImplementation("org.json:json:20240303")
+    testImplementation("org.robolectric:robolectric:4.13")
+    testImplementation("androidx.test:core-ktx:1.6.1")
+    testImplementation("androidx.test.ext:junit:1.2.1")
+    testImplementation("androidx.work:work-testing:2.9.1")
+}
+
+// Robolectric loads app classes through its own sandboxed classloader, which JaCoCo's default
+// coverage agent otherwise fails to attribute hits to (they show up as "no location" and get
+// dropped) - this is what was making Robolectric-only classes like ViewModels report 0%
+// coverage despite being fully exercised by tests. includeNoLocationClasses fixes that; the
+// jdk.internal.* exclude avoids JaCoCo choking on JDK internals Robolectric also loads this way.
+tasks.withType<Test>().configureEach {
+    extensions.configure<org.gradle.testing.jacoco.plugins.JacocoTaskExtension> {
+        isIncludeNoLocationClasses = true
+        excludes = listOf("jdk.internal.*")
+    }
+}
+
+// JVM unit-test coverage, scoped to the testable business logic (data layer,
+// util, notification scheduling, ViewModels) rather than Composable UI code,
+// which isn't meaningfully exercised by JUnit/Robolectric unit tests.
+tasks.register<JacocoReport>("jacocoTestReport") {
+    dependsOn("testDebugUnitTest")
+    group = "verification"
+    description = "Generates a JaCoCo HTML/XML coverage report for the debug unit tests."
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        csv.required.set(false)
+    }
+
+    val coverageExcludes = listOf(
+        "**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/Manifest*.*",
+        "android/**/*.*",
+        "**/MainActivity.*",
+        "**/CostOfTripsApp.*",
+        "**/ui/theme/**",
+        "**/ui/navigation/AppBottomBar*",
+        "**/ui/navigation/CostOfTripsNavHost*",
+        "**/ui/screens/about/**",
+        "**/ui/screens/splash/**",
+        "**/ui/screens/common/**",
+        "**/ui/screens/**/*Screen.*",
+        "**/*\$Composable*.*",
+        "**/ComposableSingletons\$*.*"
+    )
+
+    val javaClasses = fileTree("$buildDir/intermediates/javac/debug/classes") { exclude(coverageExcludes) }
+    val kotlinClasses = fileTree("$buildDir/tmp/kotlin-classes/debug") { exclude(coverageExcludes) }
+    classDirectories.setFrom(files(javaClasses, kotlinClasses))
+    sourceDirectories.setFrom(files("$projectDir/src/main/java"))
+    executionData.setFrom(
+        fileTree(buildDir) {
+            include(
+                "outputs/unit_test_code_coverage/debugUnitTest/*.exec",
+                "jacoco/testDebugUnitTest.exec"
+            )
+        }
+    )
 }

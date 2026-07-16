@@ -1,8 +1,9 @@
 package com.nhockool1002.costoftrips.ui.screens.triplist
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -25,16 +26,21 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
@@ -58,6 +64,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nhockool1002.costoftrips.R
+import com.nhockool1002.costoftrips.data.local.entity.Trip
 import com.nhockool1002.costoftrips.ui.appViewModelFactory
 import com.nhockool1002.costoftrips.ui.screens.common.GradientStatCard
 import com.nhockool1002.costoftrips.ui.screens.common.TripStatusBadge
@@ -81,7 +88,7 @@ private fun formatTripDuration(startDate: Long, endDate: Long): String {
     return "${format.format(Date(startDate))} - ${format.format(Date(endDate))}"
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun TripListScreen(
     onTripClick: (Long) -> Unit,
@@ -95,6 +102,9 @@ fun TripListScreen(
 
     var orderedTrips by remember { mutableStateOf(uiState.trips) }
     LaunchedEffect(uiState.trips) { orderedTrips = uiState.trips }
+
+    var contextMenuTripId by remember { mutableStateOf<Long?>(null) }
+    var tripToDelete by remember { mutableStateOf<Trip?>(null) }
 
     var isSearchActive by rememberSaveable { mutableStateOf(false) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
@@ -236,7 +246,14 @@ fun TripListScreen(
                                         }
                                     }
                                 ),
-                                onClick = { onTripClick(item.trip.id) }
+                                onClick = { onTripClick(item.trip.id) },
+                                onLongClick = { contextMenuTripId = item.trip.id },
+                                showContextMenu = contextMenuTripId == item.trip.id,
+                                onDismissContextMenu = { contextMenuTripId = null },
+                                onDeleteClick = {
+                                    tripToDelete = item.trip
+                                    contextMenuTripId = null
+                                }
                             )
                         }
                     }
@@ -253,15 +270,42 @@ fun TripListScreen(
                             status = tripStatus(item.trip.startDate, item.trip.endDate),
                             total = item.total,
                             dragModifier = null,
-                            onClick = { onTripClick(item.trip.id) }
+                            onClick = { onTripClick(item.trip.id) },
+                            onLongClick = { contextMenuTripId = item.trip.id },
+                            showContextMenu = contextMenuTripId == item.trip.id,
+                            onDismissContextMenu = { contextMenuTripId = null },
+                            onDeleteClick = {
+                                tripToDelete = item.trip
+                                contextMenuTripId = null
+                            }
                         )
                     }
                 }
             }
         }
     }
+
+    tripToDelete?.let { trip ->
+        AlertDialog(
+            onDismissRequest = { tripToDelete = null },
+            title = { Text(stringResource(R.string.trip_list_delete_trip)) },
+            text = { Text(stringResource(R.string.trip_list_delete_trip_message, trip.name)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.deleteTrip(trip)
+                    tripToDelete = null
+                }) { Text(stringResource(R.string.common_delete)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { tripToDelete = null }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            }
+        )
+    }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun TripCard(
     emoji: String,
@@ -271,73 +315,86 @@ private fun TripCard(
     status: TripStatus,
     total: Double,
     dragModifier: Modifier?,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    showContextMenu: Boolean,
+    onDismissContextMenu: () -> Unit,
+    onDeleteClick: () -> Unit
 ) {
     val currency = LocalCurrency.current
-    Card(
-        shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(emoji, style = MaterialTheme.typography.titleMedium)
-                }
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 10.dp)
-                ) {
-                    Text(name, style = MaterialTheme.typography.titleMedium)
-                    if (destination.isNotBlank()) {
+    Box {
+        Card(
+            shape = RoundedCornerShape(22.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(emoji, style = MaterialTheme.typography.titleMedium)
+                    }
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = 10.dp)
+                    ) {
+                        Text(name, style = MaterialTheme.typography.titleMedium)
+                        if (destination.isNotBlank()) {
+                            Text(
+                                "📍 $destination",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    TripStatusBadge(status = status)
+                    if (dragModifier != null) {
                         Text(
-                            "📍 $destination",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            "☰",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = dragModifier.padding(start = 6.dp)
                         )
                     }
                 }
-                TripStatusBadge(status = status)
-                if (dragModifier != null) {
-                    Text(
-                        "☰",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = dragModifier.padding(start = 6.dp)
-                    )
-                }
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    "📅 $duration",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f)
-                )
-                Box(
+                Row(
                     modifier = Modifier
-                        .background(MaterialTheme.colorScheme.tertiaryContainer, RoundedCornerShape(999.dp))
-                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        CurrencyFormatter.format(total, currency),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onTertiaryContainer
+                        "📅 $duration",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f)
                     )
+                    Box(
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.tertiaryContainer, RoundedCornerShape(999.dp))
+                            .padding(horizontal = 10.dp, vertical = 5.dp)
+                    ) {
+                        Text(
+                            CurrencyFormatter.format(total, currency),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                        )
+                    }
                 }
             }
+        }
+        DropdownMenu(expanded = showContextMenu, onDismissRequest = onDismissContextMenu) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.trip_list_delete_trip)) },
+                leadingIcon = { Icon(Icons.Filled.Delete, contentDescription = null) },
+                onClick = onDeleteClick
+            )
         }
     }
 }

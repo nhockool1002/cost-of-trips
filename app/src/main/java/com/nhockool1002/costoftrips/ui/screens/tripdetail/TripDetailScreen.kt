@@ -64,8 +64,11 @@ import com.nhockool1002.costoftrips.ui.screens.common.CategoryIcon
 import com.nhockool1002.costoftrips.ui.screens.common.GradientStatCard
 import com.nhockool1002.costoftrips.ui.screens.common.TripStatusBadge
 import com.nhockool1002.costoftrips.ui.screens.common.displayName
+import com.nhockool1002.costoftrips.util.CurrencyAmountVisualTransformation
 import com.nhockool1002.costoftrips.util.CurrencyFormatter
 import com.nhockool1002.costoftrips.util.LocalCurrency
+import com.nhockool1002.costoftrips.util.amountToRawDigits
+import com.nhockool1002.costoftrips.util.rawDigitsToAmount
 import com.nhockool1002.costoftrips.util.tripStatus
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
@@ -261,24 +264,25 @@ fun TripDetailScreen(
     }
 
     if (showBudgetDialog) {
-        var budgetInput by remember { mutableStateOf(uiState.trip?.budget?.toString().orEmpty()) }
+        var budgetDigits by remember { mutableStateOf(amountToRawDigits(uiState.trip?.budget ?: 0.0, currency)) }
         AlertDialog(
             onDismissRequest = { showBudgetDialog = false },
             title = { Text(stringResource(R.string.trip_detail_budget_label)) },
             text = {
                 OutlinedTextField(
-                    value = budgetInput,
-                    onValueChange = { budgetInput = it },
+                    value = budgetDigits,
+                    onValueChange = { input -> budgetDigits = input.filter { it.isDigit() } },
                     label = { Text(stringResource(R.string.trip_detail_budget_dialog_label)) },
                     suffix = { Text(currency.symbol) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    visualTransformation = CurrencyAmountVisualTransformation(currency),
                     modifier = Modifier.fillMaxWidth()
                 )
             },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.setBudget(budgetInput.toDoubleOrNull())
+                    viewModel.setBudget(if (budgetDigits.isEmpty()) null else rawDigitsToAmount(budgetDigits, currency))
                     showBudgetDialog = false
                 }) { Text(stringResource(R.string.create_trip_save)) }
             },

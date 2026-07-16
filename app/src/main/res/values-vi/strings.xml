@@ -10,6 +10,8 @@
     <string name="trip_list_add_trip">Thêm chuyến đi</string>
     <string name="trip_list_search_placeholder">Tìm kiếm chuyến đi</string>
     <string name="trip_list_search_no_results">Không tìm thấy chuyến đi phù hợp</string>
+    <string name="trip_list_delete_trip">Xóa chuyến đi</string>
+    <string name="trip_list_delete_trip_message">Xóa chuyến đi \"%1$s\"? Toàn bộ chi phí liên quan cũng sẽ bị xóa và không thể hoàn tác.</string>
     <string name="nav_trips">Chuyến đi</string>
     <string name="nav_statistics">Thống kê</string>
     <string name="trip_list_analytics_title">Phân tích chi tiêu</string>
@@ -35,6 +37,7 @@
     <string name="create_trip_note_label">Ghi chú</string>
     <string name="create_trip_save">Lưu</string>
     <string name="create_trip_name_required">Vui lòng nhập tên chuyến đi</string>
+    <string name="create_trip_date_range_error">Ngày bắt đầu không được lớn hơn ngày kết thúc</string>
     <string name="create_trip_budget_label">Ngân sách (không bắt buộc)</string>
 
     <string name="trip_detail_total_label">Tổng chi phí</string>

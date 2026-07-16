@@ -45,7 +45,9 @@ import com.nhockool1002.costoftrips.data.local.entity.ExpenseCategory
 import com.nhockool1002.costoftrips.ui.appViewModelFactory
 import com.nhockool1002.costoftrips.ui.screens.common.CuteTextField
 import com.nhockool1002.costoftrips.ui.screens.common.badgeColor
+import com.nhockool1002.costoftrips.util.CurrencyAmountVisualTransformation
 import com.nhockool1002.costoftrips.util.LocalCurrency
+import com.nhockool1002.costoftrips.util.rawDigitsToAmount
 import com.nhockool1002.costoftrips.ui.screens.common.displayName
 import com.nhockool1002.costoftrips.ui.screens.common.emoji
 
@@ -60,11 +62,12 @@ fun AddExpenseScreen(
     val viewModel: AddExpenseViewModel = viewModel(factory = appViewModelFactory(context, tripId))
 
     var category by rememberSaveable { mutableStateOf(ExpenseCategory.OTHER) }
-    var amountText by rememberSaveable { mutableStateOf("") }
+    var amountDigits by rememberSaveable { mutableStateOf("") }
     var note by rememberSaveable { mutableStateOf("") }
     var showError by rememberSaveable { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
+    val currency = LocalCurrency.current
 
     val members by viewModel.members.collectAsState()
     var paidByMemberId by remember { mutableStateOf<Long?>(null) }
@@ -118,18 +121,19 @@ fun AddExpenseScreen(
             }
 
             CuteTextField(
-                value = amountText,
-                onValueChange = { amountText = it; showError = false },
+                value = amountDigits,
+                onValueChange = { input -> amountDigits = input.filter { it.isDigit() }; showError = false },
                 label = stringResource(R.string.add_expense_amount_label),
                 emoji = "💵",
                 emojiContainerColor = category.badgeColor(),
-                suffix = { Text(LocalCurrency.current.symbol) },
+                suffix = { Text(currency.symbol) },
                 isError = showError,
                 supportingText = {
                     if (showError) Text(stringResource(R.string.add_expense_amount_required))
                 },
                 textStyle = MaterialTheme.typography.headlineMedium,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                visualTransformation = CurrencyAmountVisualTransformation(currency),
                 modifier = Modifier.fillMaxWidth()
             )
             CuteTextField(
@@ -173,8 +177,8 @@ fun AddExpenseScreen(
 
             Button(
                 onClick = {
-                    val amount = amountText.toDoubleOrNull()
-                    if (amount == null || amount <= 0.0) {
+                    val amount = rawDigitsToAmount(amountDigits, currency)
+                    if (amount <= 0.0) {
                         showError = true
                     } else {
                         viewModel.addExpense(
