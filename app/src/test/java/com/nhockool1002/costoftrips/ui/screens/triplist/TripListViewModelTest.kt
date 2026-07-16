@@ -110,14 +110,20 @@ class TripListViewModelTest {
         assertTrue(repository.getAllExpenses().none { it.tripId == tripId })
     }
 
+    // These three deliberately use bare runTest {} instead of runTest(mainDispatcherRule.testDispatcher),
+    // unlike the other tests in this file: TripListViewModel's uiState is a permanent
+    // stateIn(WhileSubscribed) coroutine on viewModelScope that never completes on its own, and
+    // sharing Main's scheduler with runTest's here made that coroutine visible to runTest's "any
+    // active child jobs left?" completion check, causing a spurious UncompletedCoroutinesError in
+    // CI (same root cause and fix as SettingsViewModelTest's - see the comment there).
     @Test
-    fun `shouldShowRateDialog is true the first time it is checked`() = runTest(mainDispatcherRule.testDispatcher) {
+    fun `shouldShowRateDialog is true the first time it is checked`() = runTest {
         val viewModel = TripListViewModel(repository, preferencesRepository)
         assertTrue(viewModel.shouldShowRateDialog())
     }
 
     @Test
-    fun `shouldShowRateDialog is false again on the same day after being shown`() = runTest(mainDispatcherRule.testDispatcher) {
+    fun `shouldShowRateDialog is false again on the same day after being shown`() = runTest {
         val viewModel = TripListViewModel(repository, preferencesRepository)
 
         viewModel.onRateDialogShown()
@@ -128,7 +134,7 @@ class TripListViewModelTest {
     }
 
     @Test
-    fun `shouldShowRateDialog is false forever after onRateDialogRated`() = runTest(mainDispatcherRule.testDispatcher) {
+    fun `shouldShowRateDialog is false forever after onRateDialogRated`() = runTest {
         val viewModel = TripListViewModel(repository, preferencesRepository)
 
         viewModel.onRateDialogRated()
