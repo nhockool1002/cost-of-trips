@@ -40,12 +40,15 @@ class SettingsViewModelTest {
     private lateinit var viewModel: SettingsViewModel
 
     // SettingsViewModel eagerly launches 4 long-lived stateIn(WhileSubscribed) coroutines on
-    // viewModelScope at construction time; since viewModelScope shares its dispatcher with
-    // runTest (see MainDispatcherRule), those never-completing coroutines race with runTest's
-    // own end-of-test idle check and can trigger a spurious 1-minute UncompletedCoroutinesError.
-    // Routing every SettingsViewModel through this store cancels viewModelScope via clear() -
-    // that MUST happen as the last line inside each runTest{} body (not just in @After, which
-    // runs too late: after runTest's own internal completion check already ran).
+    // viewModelScope at construction time; those never complete on their own. Deliberately NOT
+    // passing mainDispatcherRule.testDispatcher into runTest() below (unlike the other
+    // ViewModel test files) keeps Main's dispatcher on its own independent scheduler, so those
+    // coroutines are invisible to runTest's own "any active child jobs left?" completion check -
+    // sharing the scheduler here reliably triggered a spurious 1-minute
+    // UncompletedCoroutinesError (confirmed repeatedly in CI; trying to just cancel
+    // viewModelScope before each test ends wasn't reliable enough to fully close the race).
+    // Routing every SettingsViewModel through this store and clearing it is still good hygiene
+    // for cross-test isolation, just no longer the thing preventing the hang.
     private val viewModelStore = ViewModelStore()
 
     @Before
@@ -67,7 +70,7 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `setThemeMode persists and is reflected in themeMode`() = runTest(mainDispatcherRule.testDispatcher) {
+    fun `setThemeMode persists and is reflected in themeMode`() = runTest {
         viewModel.setThemeMode(ThemeMode.LIGHT)
         val mode = preferencesRepository.themeMode.first { it == ThemeMode.LIGHT }
         assertEquals(ThemeMode.LIGHT, mode)
@@ -75,7 +78,7 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `setCurrency persists and is reflected in currency`() = runTest(mainDispatcherRule.testDispatcher) {
+    fun `setCurrency persists and is reflected in currency`() = runTest {
         viewModel.setCurrency(AppCurrency.USD)
         val currency = preferencesRepository.currency.first { it == AppCurrency.USD }
         assertEquals(AppCurrency.USD, currency)
@@ -83,7 +86,7 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `setReminderEnabled persists the flag`() = runTest(mainDispatcherRule.testDispatcher) {
+    fun `setReminderEnabled persists the flag`() = runTest {
         viewModel.setReminderEnabled(true)
         val enabled = preferencesRepository.reminderEnabled.first { it }
         assertTrue(enabled)
@@ -91,7 +94,7 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `setReminderIntervalHours persists the value`() = runTest(mainDispatcherRule.testDispatcher) {
+    fun `setReminderIntervalHours persists the value`() = runTest {
         viewModel.setReminderIntervalHours(12)
         val hours = preferencesRepository.reminderIntervalHours.first { it == 12 }
         assertEquals(12, hours)
@@ -99,7 +102,7 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `exportData then importData round-trips a trip into a fresh database`() = runTest(mainDispatcherRule.testDispatcher) {
+    fun `exportData then importData round-trips a trip into a fresh database`() = runTest {
         val tripId = tripRepository.createTrip(Trip(name = "Exported Trip", destination = "Hoi An", startDate = 0L, endDate = 0L))
         val memberId = tripRepository.addMember(TripMember(tripId = tripId, name = "An"))
         tripRepository.addExpense(
@@ -131,7 +134,7 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `importData with malformed JSON returns failure`() = runTest(mainDispatcherRule.testDispatcher) {
+    fun `importData with malformed JSON returns failure`() = runTest {
         val result = viewModel.importData("not json")
         assertTrue(result.isFailure)
         viewModelStore.clear()
