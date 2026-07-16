@@ -87,7 +87,11 @@ jobs:
   # "GitHub Actions".
   publish-report:
     needs: test
-    if: always() && github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # No always() here: this should only run (and only try to download the coverage/test
+    # artifacts) when the test job actually succeeded and produced them - always() previously
+    # made it attempt to run even on test failures, hard-failing on a missing artifact instead
+    # of just skipping.
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       pages: write

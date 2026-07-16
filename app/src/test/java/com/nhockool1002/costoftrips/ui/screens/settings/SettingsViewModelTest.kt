@@ -40,11 +40,12 @@ class SettingsViewModelTest {
     private lateinit var viewModel: SettingsViewModel
 
     // SettingsViewModel eagerly launches 4 long-lived stateIn(WhileSubscribed) coroutines on
-    // viewModelScope at construction time; since viewModelScope now shares its dispatcher with
-    // runTest (see MainDispatcherRule), those never-completing coroutines can occasionally race
-    // with runTest's end-of-test idle check and trigger a spurious 1-minute
-    // UncompletedCoroutinesError. Routing every SettingsViewModel through this store and
-    // clearing it in @After properly cancels viewModelScope, avoiding that race entirely.
+    // viewModelScope at construction time; since viewModelScope shares its dispatcher with
+    // runTest (see MainDispatcherRule), those never-completing coroutines race with runTest's
+    // own end-of-test idle check and can trigger a spurious 1-minute UncompletedCoroutinesError.
+    // Routing every SettingsViewModel through this store cancels viewModelScope via clear() -
+    // that MUST happen as the last line inside each runTest{} body (not just in @After, which
+    // runs too late: after runTest's own internal completion check already ran).
     private val viewModelStore = ViewModelStore()
 
     @Before
@@ -70,6 +71,7 @@ class SettingsViewModelTest {
         viewModel.setThemeMode(ThemeMode.LIGHT)
         val mode = preferencesRepository.themeMode.first { it == ThemeMode.LIGHT }
         assertEquals(ThemeMode.LIGHT, mode)
+        viewModelStore.clear()
     }
 
     @Test
@@ -77,6 +79,7 @@ class SettingsViewModelTest {
         viewModel.setCurrency(AppCurrency.USD)
         val currency = preferencesRepository.currency.first { it == AppCurrency.USD }
         assertEquals(AppCurrency.USD, currency)
+        viewModelStore.clear()
     }
 
     @Test
@@ -84,6 +87,7 @@ class SettingsViewModelTest {
         viewModel.setReminderEnabled(true)
         val enabled = preferencesRepository.reminderEnabled.first { it }
         assertTrue(enabled)
+        viewModelStore.clear()
     }
 
     @Test
@@ -91,6 +95,7 @@ class SettingsViewModelTest {
         viewModel.setReminderIntervalHours(12)
         val hours = preferencesRepository.reminderIntervalHours.first { it == 12 }
         assertEquals(12, hours)
+        viewModelStore.clear()
     }
 
     @Test
@@ -122,11 +127,13 @@ class SettingsViewModelTest {
         } finally {
             freshDatabase.close()
         }
+        viewModelStore.clear()
     }
 
     @Test
     fun `importData with malformed JSON returns failure`() = runTest(mainDispatcherRule.testDispatcher) {
         val result = viewModel.importData("not json")
         assertTrue(result.isFailure)
+        viewModelStore.clear()
     }
 }
