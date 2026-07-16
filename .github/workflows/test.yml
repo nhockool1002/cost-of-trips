@@ -2,7 +2,7 @@ name: Unit tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, claude/app-review-roadmap-d8hjlt] # TEMP: final verification pass, will revert to [main] only
   pull_request:
     branches: [main]
   workflow_dispatch:
