@@ -180,12 +180,15 @@ class TripRepositoryTest {
 
     @Test
     fun `importTrips inserts trips with fresh ids and links members and splits by name`() = runTest {
+        // Mirrors what DataExporter.parseJson actually produces: id always left at its
+        // default (0), never set explicitly - Room's autoGenerate only kicks in for 0/omitted
+        // ids, and would otherwise insert whatever explicit id it's given verbatim.
         val imported = ImportedTrip(
-            trip = Trip(id = 999L, name = "Imported Trip", destination = "Hue", startDate = 0L, endDate = 0L),
+            trip = Trip(name = "Imported Trip", destination = "Hue", startDate = 0L, endDate = 0L),
             memberNames = listOf("An", "Binh"),
             expenses = listOf(
                 ImportedExpense(
-                    expense = Expense(id = 555L, tripId = 0L, category = ExpenseCategory.TRANSPORT, amount = 30.0),
+                    expense = Expense(tripId = 0L, category = ExpenseCategory.TRANSPORT, amount = 30.0),
                     paidByName = "An",
                     splitWithNames = listOf("An", "Binh")
                 )
@@ -198,7 +201,7 @@ class TripRepositoryTest {
         val trips = repository.getAllTrips()
         assertEquals(1, trips.size)
         val newTripId = trips[0].id
-        assertTrue("import must assign a fresh id", newTripId != 999L)
+        assertTrue("import must assign an auto-generated id", newTripId > 0L)
 
         val members = repository.getAllMembers()
         assertEquals(setOf("An", "Binh"), members.map { it.name }.toSet())

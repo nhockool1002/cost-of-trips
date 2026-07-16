@@ -2,6 +2,7 @@ package com.nhockool1002.costoftrips.data.preferences
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import java.io.File
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -19,7 +20,11 @@ class UserPreferencesRepositoryTest {
 
     @Before
     fun setUp() {
-        repository = UserPreferencesRepository(ApplicationProvider.getApplicationContext<Context>())
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        // Robolectric reuses the same on-disk files dir across test methods within this
+        // class, so the "settings" DataStore file otherwise leaks state between tests.
+        File(context.filesDir, "datastore").deleteRecursively()
+        repository = UserPreferencesRepository(context)
     }
 
     @Test
