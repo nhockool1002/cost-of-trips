@@ -2,7 +2,7 @@ name: Unit tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, claude/app-review-roadmap-d8hjlt] # TEMP: verifying the new UI fixes build, will revert to [main] only
   pull_request:
     branches: [main]
   workflow_dispatch:
