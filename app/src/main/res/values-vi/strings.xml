@@ -58,6 +58,9 @@
     <string name="trip_detail_budget_dialog_label">Số tiền ngân sách</string>
     <string name="trip_detail_budget_remaining">Còn lại %1$s</string>
     <string name="trip_detail_budget_over">Vượt ngân sách %1$s</string>
+    <string name="trip_detail_checklist_label">✅ Checklist</string>
+    <string name="trip_detail_checklist_add_hint">Thêm việc cần chuẩn bị…</string>
+    <string name="trip_detail_checklist_empty">Chưa có việc nào — thêm mục đầu tiên nhé.</string>
 
     <string name="add_expense_title">Chi phí mới</string>
     <string name="add_expense_category_label">Hạng mục</string>

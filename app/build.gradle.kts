@@ -12,8 +12,8 @@ android {
         applicationId = "com.nhockool1002.costoftrips"
         minSdk = 24
         targetSdk = 35
-        versionCode = 10
-        versionName = "1.0.0.a8"
+        versionCode = 11
+        versionName = "1.0.0.a9"
 
         // The app only ships English (default) + Vietnamese strings, but
         // AndroidX libraries (AppCompat, Compose, etc.) bundle their own
@@ -96,13 +96,10 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
-    // material-icons-extended was removed: every icon the app actually uses
-    // (Add, Delete, Settings, AutoMirrored ArrowBack/KeyboardArrowRight) ships
-    // in material-icons-core, which material3 already pulls in transitively.
-    // Verified via a clean release build that this makes no measurable size
-    // difference either way (R8 was already shrinking the extended set down
-    // to the same handful of icons) — dropped mainly to shrink the dependency
-    // graph, not for size.
+
+    // Tabler Icons replace Material Icons for every icon the app uses, for a more
+    // distinctive, modern outline look than the default Material set.
+    implementation("br.com.devsrsouza.compose.icons:tabler-icons:1.1.1")
 
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation("sh.calvin.reorderable:reorderable:2.4.3")

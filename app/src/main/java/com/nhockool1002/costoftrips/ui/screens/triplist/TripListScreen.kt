@@ -24,11 +24,11 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
+import compose.icons.TablerIcons
+import compose.icons.tablericons.X
+import compose.icons.tablericons.Trash
+import compose.icons.tablericons.Search
+import compose.icons.tablericons.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -178,7 +178,7 @@ fun TripListScreen(
                             isSearchActive = false
                             searchQuery = ""
                         }) {
-                            Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_close_search))
+                            Icon(TablerIcons.X, contentDescription = stringResource(R.string.action_close_search))
                         }
                     }
                 },
@@ -186,11 +186,11 @@ fun TripListScreen(
                     if (!isSearchActive) {
                         if (orderedTrips.isNotEmpty()) {
                             IconButton(onClick = { isSearchActive = true }) {
-                                Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.action_search))
+                                Icon(TablerIcons.Search, contentDescription = stringResource(R.string.action_search))
                             }
                         }
                         IconButton(onClick = onSettingsClick) {
-                            Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.action_settings))
+                            Icon(TablerIcons.Settings, contentDescription = stringResource(R.string.action_settings))
                         }
                     }
                 }
@@ -427,7 +427,7 @@ private fun TripCard(
         DropdownMenu(expanded = showContextMenu, onDismissRequest = onDismissContextMenu) {
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.trip_list_delete_trip)) },
-                leadingIcon = { Icon(Icons.Filled.Delete, contentDescription = null) },
+                leadingIcon = { Icon(TablerIcons.Trash, contentDescription = null) },
                 onClick = onDeleteClick
             )
         }

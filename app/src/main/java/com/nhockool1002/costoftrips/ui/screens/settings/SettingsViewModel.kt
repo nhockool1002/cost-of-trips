@@ -65,7 +65,8 @@ class SettingsViewModel(
         val expenses = tripRepository.getAllExpenses()
         val members = tripRepository.getAllMembers()
         val splits = tripRepository.getAllSplits()
-        return DataExporter.buildJson(trips, expenses, members, splits)
+        val checklistItems = tripRepository.getAllChecklistItems()
+        return DataExporter.buildJson(trips, expenses, members, splits, checklistItems)
     }
 
     suspend fun importData(json: String): Result<Int> = runCatching {

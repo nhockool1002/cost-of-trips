@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import com.nhockool1002.costoftrips.data.local.entity.ChecklistItem
 import com.nhockool1002.costoftrips.data.local.entity.Expense
 import com.nhockool1002.costoftrips.data.local.entity.ExpenseCategory
 import com.nhockool1002.costoftrips.data.local.entity.ExpenseSplitMember
@@ -22,12 +23,19 @@ import java.util.Locale
 // rather than id, since member ids are re-assigned on import (see ImportedTrip).
 data class ImportedExpense(val expense: Expense, val paidByName: String?, val splitWithNames: List<String>)
 
+data class ImportedChecklistItem(val text: String, val isChecked: Boolean)
+
 // A parsed trip with its members and expenses, without ids: importing always
 // inserts fresh rows (via Room's autoGenerate) rather than reusing the
 // exported ids, since those may collide with rows already in the database.
 // Members are carried by name so they can be re-linked to their freshly
 // generated ids once inserted.
-data class ImportedTrip(val trip: Trip, val memberNames: List<String>, val expenses: List<ImportedExpense>)
+data class ImportedTrip(
+    val trip: Trip,
+    val memberNames: List<String>,
+    val expenses: List<ImportedExpense>,
+    val checklist: List<ImportedChecklistItem> = emptyList()
+)
 
 object DataExporter {
 
@@ -35,11 +43,13 @@ object DataExporter {
         trips: List<Trip>,
         expenses: List<Expense>,
         members: List<TripMember>,
-        splits: List<ExpenseSplitMember>
+        splits: List<ExpenseSplitMember>,
+        checklistItems: List<ChecklistItem> = emptyList()
     ): String {
         val expensesByTrip = expenses.groupBy { it.tripId }
         val membersByTrip = members.groupBy { it.tripId }
         val splitMemberIdsByExpense = splits.groupBy({ it.expenseId }, { it.memberId })
+        val checklistByTrip = checklistItems.groupBy { it.tripId }
         val tripsArray = JSONArray()
         trips.forEach { trip ->
             val tripMembers = membersByTrip[trip.id].orEmpty()
@@ -66,6 +76,18 @@ object DataExporter {
                     }
                 )
             }
+            val checklistArray = JSONArray()
+            checklistByTrip[trip.id].orEmpty()
+                .sortedBy { it.sortOrder }
+                .forEach { item ->
+                    checklistArray.put(
+                        JSONObject().apply {
+                            put("text", item.text)
+                            put("isChecked", item.isChecked)
+                        }
+                    )
+                }
+
             tripsArray.put(
                 JSONObject().apply {
                     put("id", trip.id)
@@ -77,6 +99,7 @@ object DataExporter {
                     trip.budget?.let { put("budget", it) }
                     put("members", membersArray)
                     put("expenses", expensesArray)
+                    put("checklist", checklistArray)
                 }
             )
         }
@@ -119,7 +142,17 @@ object DataExporter {
                 val splitWithNames = (0 until splitWithArray.length()).map { splitWithArray.getString(it) }
                 ImportedExpense(expense, paidByName, splitWithNames)
             }
-            ImportedTrip(trip, memberNames, expenses)
+
+            val checklistArray = tripJson.optJSONArray("checklist") ?: JSONArray()
+            val checklist = (0 until checklistArray.length()).map { k ->
+                val itemJson = checklistArray.getJSONObject(k)
+                ImportedChecklistItem(
+                    text = itemJson.getString("text"),
+                    isChecked = itemJson.optBoolean("isChecked", false)
+                )
+            }
+
+            ImportedTrip(trip, memberNames, expenses, checklist)
         }
     }
 

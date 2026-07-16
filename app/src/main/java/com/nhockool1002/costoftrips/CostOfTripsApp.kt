@@ -27,7 +27,8 @@ class CostOfTripsApp : Application() {
             database.tripDao(),
             database.expenseDao(),
             database.tripMemberDao(),
-            database.expenseSplitDao()
+            database.expenseSplitDao(),
+            database.checklistItemDao()
         )
         userPreferencesRepository = UserPreferencesRepository(this)
 
