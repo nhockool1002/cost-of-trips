@@ -65,4 +65,8 @@ class TripListViewModel(
     fun reorderTrips(orderedTripIds: List<Long>) {
         viewModelScope.launch { repository.reorderTrips(orderedTripIds) }
     }
+
+    fun deleteTrip(trip: Trip) {
+        viewModelScope.launch { repository.deleteTrip(trip) }
+    }
 }

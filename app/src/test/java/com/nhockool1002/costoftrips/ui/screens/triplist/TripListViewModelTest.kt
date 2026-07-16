@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -88,5 +89,18 @@ class TripListViewModelTest {
         val reordered = repository.observeTrips()
             .first { trips -> trips.sortedBy { it.sortOrder }.map { it.id } == listOf(id2, id1) }
         assertEquals(listOf(id2, id1), reordered.sortedBy { it.sortOrder }.map { it.id })
+    }
+
+    @Test
+    fun `deleteTrip removes the trip and its expenses`() = runTest(mainDispatcherRule.testDispatcher) {
+        val tripId = repository.createTrip(Trip(name = "Trip", destination = "", startDate = 0L, endDate = 0L))
+        repository.addExpense(Expense(tripId = tripId, category = ExpenseCategory.OTHER, amount = 5.0))
+        val trip = repository.getAllTrips().first { it.id == tripId }
+
+        TripListViewModel(repository).deleteTrip(trip)
+
+        val remainingTrips = repository.observeTrips().first { it.isEmpty() }
+        assertTrue(remainingTrips.isEmpty())
+        assertTrue(repository.getAllExpenses().none { it.tripId == tripId })
     }
 }

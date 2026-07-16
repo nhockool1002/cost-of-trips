@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -74,6 +75,7 @@ fun CuteTextField(
     suffix: (@Composable () -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     textStyle: TextStyle? = null,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
     onClick: (() -> Unit)? = null
 ) {
     val shape = RoundedCornerShape(20.dp)
@@ -87,6 +89,8 @@ fun CuteTextField(
             label = { Text(label) },
             leadingIcon = badge,
             suffix = suffix,
+            isError = isError,
+            supportingText = supportingText,
             enabled = false,
             shape = shape,
             colors = OutlinedTextFieldDefaults.colors(
@@ -110,6 +114,7 @@ fun CuteTextField(
             shape = shape,
             keyboardOptions = keyboardOptions,
             textStyle = textStyle ?: MaterialTheme.typography.bodyLarge,
+            visualTransformation = visualTransformation,
             modifier = modifier
         )
     }
