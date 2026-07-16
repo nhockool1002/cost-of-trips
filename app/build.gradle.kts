@@ -126,6 +126,8 @@ dependencies {
 
     implementation("androidx.work:work-runtime-ktx:2.9.1")
 
+    implementation("com.google.android.play:app-update-ktx:2.1.0")
+
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     // Testing

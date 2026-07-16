@@ -1,9 +1,12 @@
 package com.nhockool1002.costoftrips.ui.screens.triplist
 
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
 import com.nhockool1002.costoftrips.data.local.AppDatabase
 import com.nhockool1002.costoftrips.data.local.entity.Expense
 import com.nhockool1002.costoftrips.data.local.entity.ExpenseCategory
 import com.nhockool1002.costoftrips.data.local.entity.Trip
+import com.nhockool1002.costoftrips.data.preferences.UserPreferencesRepository
 import com.nhockool1002.costoftrips.data.repository.TripRepository
 import com.nhockool1002.costoftrips.testutil.InMemoryDatabaseFactory
 import com.nhockool1002.costoftrips.testutil.MainDispatcherRule
@@ -12,6 +15,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -29,11 +33,13 @@ class TripListViewModelTest {
 
     private lateinit var database: AppDatabase
     private lateinit var repository: TripRepository
+    private lateinit var preferencesRepository: UserPreferencesRepository
 
     @Before
     fun setUp() {
         database = InMemoryDatabaseFactory.create()
         repository = TripRepository(database.tripDao(), database.expenseDao(), database.tripMemberDao(), database.expenseSplitDao())
+        preferencesRepository = UserPreferencesRepository(ApplicationProvider.getApplicationContext<Context>())
     }
 
     @After
@@ -47,7 +53,7 @@ class TripListViewModelTest {
         repository.addExpense(Expense(tripId = tripId, category = ExpenseCategory.FOOD, amount = 100.0))
         repository.addExpense(Expense(tripId = tripId, category = ExpenseCategory.TRANSPORT, amount = 50.0))
 
-        val state = TripListViewModel(repository).uiState.first { it.trips.isNotEmpty() }
+        val state = TripListViewModel(repository, preferencesRepository).uiState.first { it.trips.isNotEmpty() }
 
         assertEquals(1, state.trips.size)
         assertEquals(150.0, state.trips[0].total, 0.0001)
@@ -61,7 +67,7 @@ class TripListViewModelTest {
         repository.addExpense(Expense(tripId = tripId, category = ExpenseCategory.FOOD, amount = 20.0, date = now))
         repository.addExpense(Expense(tripId = tripId, category = ExpenseCategory.FOOD, amount = 999.0, date = longAgo))
 
-        val state = TripListViewModel(repository).uiState.first { it.trips.isNotEmpty() }
+        val state = TripListViewModel(repository, preferencesRepository).uiState.first { it.trips.isNotEmpty() }
 
         assertEquals(20.0, state.analytics.monthlyTotal, 0.0001)
         assertEquals(20.0, state.analytics.yearlyTotal, 0.0001)
@@ -73,7 +79,7 @@ class TripListViewModelTest {
         val spentTripId = repository.createTrip(Trip(name = "Spent trip", destination = "", startDate = 0L, endDate = 0L))
         repository.addExpense(Expense(tripId = spentTripId, category = ExpenseCategory.FOOD, amount = 10.0))
 
-        val state = TripListViewModel(repository).uiState.first { it.trips.size == 2 }
+        val state = TripListViewModel(repository, preferencesRepository).uiState.first { it.trips.size == 2 }
 
         assertEquals("Spent trip", state.analytics.mostExpensiveTrip?.trip?.name)
     }
@@ -83,7 +89,7 @@ class TripListViewModelTest {
         val id1 = repository.createTrip(Trip(name = "First", destination = "", startDate = 0L, endDate = 0L))
         val id2 = repository.createTrip(Trip(name = "Second", destination = "", startDate = 0L, endDate = 0L))
 
-        val viewModel = TripListViewModel(repository)
+        val viewModel = TripListViewModel(repository, preferencesRepository)
         viewModel.reorderTrips(listOf(id2, id1))
 
         val reordered = repository.observeTrips()
@@ -97,10 +103,55 @@ class TripListViewModelTest {
         repository.addExpense(Expense(tripId = tripId, category = ExpenseCategory.OTHER, amount = 5.0))
         val trip = repository.getAllTrips().first { it.id == tripId }
 
-        TripListViewModel(repository).deleteTrip(trip)
+        TripListViewModel(repository, preferencesRepository).deleteTrip(trip)
 
         val remainingTrips = repository.observeTrips().first { it.isEmpty() }
         assertTrue(remainingTrips.isEmpty())
         assertTrue(repository.getAllExpenses().none { it.tripId == tripId })
+    }
+
+    @Test
+    fun `shouldShowRateDialog is true the first time it is checked`() = runTest(mainDispatcherRule.testDispatcher) {
+        val viewModel = TripListViewModel(repository, preferencesRepository)
+        assertTrue(viewModel.shouldShowRateDialog())
+    }
+
+    @Test
+    fun `shouldShowRateDialog is false again on the same day after being shown`() = runTest(mainDispatcherRule.testDispatcher) {
+        val viewModel = TripListViewModel(repository, preferencesRepository)
+
+        viewModel.onRateDialogShown()
+        val lastShownAt = preferencesRepository.rateDialogLastShownAt.first { it != 0L }
+        assertTrue(isSameDay(lastShownAt, System.currentTimeMillis()))
+
+        assertFalse(viewModel.shouldShowRateDialog())
+    }
+
+    @Test
+    fun `shouldShowRateDialog is false forever after onRateDialogRated`() = runTest(mainDispatcherRule.testDispatcher) {
+        val viewModel = TripListViewModel(repository, preferencesRepository)
+
+        viewModel.onRateDialogRated()
+        preferencesRepository.rateDialogDismissedPermanently.first { it }
+
+        assertFalse(viewModel.shouldShowRateDialog())
+    }
+
+    @Test
+    fun `isSameDay treats a zero timestamp as never shown`() {
+        assertFalse(isSameDay(0L, System.currentTimeMillis()))
+    }
+
+    @Test
+    fun `isSameDay is true for two timestamps on the same calendar day`() {
+        val now = System.currentTimeMillis()
+        assertTrue(isSameDay(now, now + 1000L))
+    }
+
+    @Test
+    fun `isSameDay is false for timestamps a day apart`() {
+        val now = System.currentTimeMillis()
+        val yesterday = now - TimeUnit.DAYS.toMillis(1)
+        assertFalse(isSameDay(now, yesterday))
     }
 }

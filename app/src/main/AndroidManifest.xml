@@ -23,6 +23,7 @@
             <data android:scheme="https" />
         </intent>
         <package android:name="com.google.android.gm" />
+        <package android:name="com.android.vending" />
     </queries>
 
     <application

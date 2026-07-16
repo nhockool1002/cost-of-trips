@@ -3,24 +3,43 @@ package com.nhockool1002.costoftrips
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.stringResource
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.android.play.core.appupdate.AppUpdateInfo
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.appupdate.AppUpdateOptions
+import com.google.android.play.core.install.InstallStateUpdatedListener
+import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.model.InstallStatus
+import com.google.android.play.core.install.model.UpdateAvailability
 import com.nhockool1002.costoftrips.data.preferences.AppCurrency
 import com.nhockool1002.costoftrips.data.preferences.ThemeMode
 import com.nhockool1002.costoftrips.ui.navigation.AppBottomBar
@@ -35,18 +54,86 @@ import com.nhockool1002.costoftrips.util.LocalCurrency
 // With a plain ComponentActivity the locale change silently has no visible
 // effect until the process is killed and relaunched.
 class MainActivity : AppCompatActivity() {
+
+    private val appUpdateManager by lazy { AppUpdateManagerFactory.create(this) }
+    private lateinit var updateResultLauncher: ActivityResultLauncher<IntentSenderRequest>
+    private var updateReady by mutableStateOf(false)
+
+    // IMMEDIATE updates block the user with Play's own full-screen UI until they update,
+    // which is what "require the update" means here. FLEXIBLE is only a fallback for the
+    // rare case where Play doesn't allow an immediate update for this release; that one
+    // downloads in the background and needs an explicit restart, surfaced via the banner
+    // driven by updateReady below.
+    private val installStateListener = InstallStateUpdatedListener { state ->
+        if (state.installStatus() == InstallStatus.DOWNLOADED) {
+            updateReady = true
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent {
-            CostOfTripsRoot()
+
+        updateResultLauncher = registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) {
+            // No-op: onResume() re-checks appUpdateInfo and resumes a stalled/cancelled
+            // immediate update automatically, so nothing needs to happen here.
         }
+
+        setContent {
+            CostOfTripsRoot(
+                showUpdateReadyBanner = updateReady,
+                onRestartToUpdate = { appUpdateManager.completeUpdate() }
+            )
+        }
+
+        appUpdateManager.registerListener(installStateListener)
+        checkForAppUpdate()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        appUpdateManager.appUpdateInfo.addOnSuccessListener { info ->
+            when {
+                info.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS ->
+                    startUpdateFlow(info)
+                info.installStatus() == InstallStatus.DOWNLOADED -> updateReady = true
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        appUpdateManager.unregisterListener(installStateListener)
+        super.onDestroy()
+    }
+
+    private fun checkForAppUpdate() {
+        appUpdateManager.appUpdateInfo.addOnSuccessListener { info ->
+            if (info.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
+                startUpdateFlow(info)
+            }
+        }
+    }
+
+    private fun startUpdateFlow(info: AppUpdateInfo) {
+        val type = when {
+            info.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE) -> AppUpdateType.IMMEDIATE
+            info.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE) -> AppUpdateType.FLEXIBLE
+            else -> return
+        }
+        appUpdateManager.startUpdateFlowForResult(
+            info,
+            updateResultLauncher,
+            AppUpdateOptions.newBuilder(type).build()
+        )
     }
 }
 
 @Composable
-fun CostOfTripsRoot() {
+fun CostOfTripsRoot(
+    showUpdateReadyBanner: Boolean = false,
+    onRestartToUpdate: () -> Unit = {}
+) {
     val app = LocalContext.current.applicationContext as CostOfTripsApp
     val themeMode by app.userPreferencesRepository.themeMode.collectAsState(initial = ThemeMode.DARK)
     val currency by app.userPreferencesRepository.currency.collectAsState(initial = AppCurrency.VND)
@@ -73,7 +160,24 @@ fun CostOfTripsRoot() {
                 val currentRoute = backStackEntry?.destination?.route
                 val showBottomBar = currentRoute == Screen.TripList.route || currentRoute == Screen.Statistics.route
 
+                val snackbarHostState = remember { SnackbarHostState() }
+                val updateReadyMessage = stringResource(R.string.update_ready_message)
+                val updateReadyAction = stringResource(R.string.update_ready_restart)
+                LaunchedEffect(showUpdateReadyBanner) {
+                    if (showUpdateReadyBanner) {
+                        val result = snackbarHostState.showSnackbar(
+                            message = updateReadyMessage,
+                            actionLabel = updateReadyAction,
+                            duration = SnackbarDuration.Indefinite
+                        )
+                        if (result == SnackbarResult.ActionPerformed) {
+                            onRestartToUpdate()
+                        }
+                    }
+                }
+
                 Scaffold(
+                    snackbarHost = { SnackbarHost(snackbarHostState) },
                     bottomBar = {
                         if (showBottomBar) {
                             AppBottomBar(navController = navController, currentRoute = currentRoute)

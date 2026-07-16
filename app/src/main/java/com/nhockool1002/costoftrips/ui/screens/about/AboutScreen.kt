@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import com.nhockool1002.costoftrips.BuildConfig
 import com.nhockool1002.costoftrips.R
 import com.nhockool1002.costoftrips.ui.theme.CookieFamily
+import com.nhockool1002.costoftrips.util.openPlayStoreListing
 
 private const val BUY_ME_A_COFFEE_URL = "https://www.buymeacoffee.com/nhutnm"
 private val BmcGreen = Color(0xFF40DCA5)
@@ -125,6 +126,13 @@ fun AboutScreen(onBack: () -> Unit) {
                     fontFamily = CookieFamily,
                     fontSize = 22.sp
                 )
+            }
+            Button(
+                onClick = { openPlayStoreListing(context) },
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.padding(top = 12.dp)
+            ) {
+                Text(stringResource(R.string.about_rate_button))
             }
         }
     }

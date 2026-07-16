@@ -101,6 +101,15 @@
     <string name="settings_about_credit">Thực hiện bởi Dev1002 © 2026</string>
     <string name="settings_about_version">Phiên bản %1$s</string>
     <string name="about_coffee_button">Buy me a coffee</string>
+    <string name="about_rate_button">⭐ Đánh giá ứng dụng</string>
+
+    <string name="rate_dialog_title">Bạn có thích Cost Of Trips không?</string>
+    <string name="rate_dialog_message">Nếu ứng dụng hữu ích với bạn, hãy dành chút thời gian đánh giá trên Google Play nhé!</string>
+    <string name="rate_dialog_rate_now">Đánh giá ngay</string>
+    <string name="rate_dialog_later">Để sau</string>
+
+    <string name="update_ready_message">Đã tải xong bản cập nhật, sẵn sàng để cài đặt.</string>
+    <string name="update_ready_restart">Khởi động lại</string>
 
     <string name="settings_support_label">Hỗ trợ</string>
     <string name="settings_report_bug">🐛 Báo lỗi</string>

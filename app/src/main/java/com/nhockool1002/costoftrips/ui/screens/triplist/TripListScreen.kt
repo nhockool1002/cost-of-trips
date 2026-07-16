@@ -71,6 +71,7 @@ import com.nhockool1002.costoftrips.ui.screens.common.TripStatusBadge
 import com.nhockool1002.costoftrips.util.CurrencyFormatter
 import com.nhockool1002.costoftrips.util.LocalCurrency
 import com.nhockool1002.costoftrips.util.TripStatus
+import com.nhockool1002.costoftrips.util.openPlayStoreListing
 import com.nhockool1002.costoftrips.util.tripStatus
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
@@ -105,6 +106,14 @@ fun TripListScreen(
 
     var contextMenuTripId by remember { mutableStateOf<Long?>(null) }
     var tripToDelete by remember { mutableStateOf<Trip?>(null) }
+
+    var showRateDialog by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        if (viewModel.shouldShowRateDialog()) {
+            showRateDialog = true
+            viewModel.onRateDialogShown()
+        }
+    }
 
     var isSearchActive by rememberSaveable { mutableStateOf(false) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
@@ -303,6 +312,32 @@ fun TripListScreen(
             }
         )
     }
+
+    if (showRateDialog) {
+        RateAppDialog(
+            onRateNow = {
+                viewModel.onRateDialogRated()
+                openPlayStoreListing(context)
+                showRateDialog = false
+            },
+            onDismiss = { showRateDialog = false }
+        )
+    }
+}
+
+@Composable
+private fun RateAppDialog(onRateNow: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.rate_dialog_title)) },
+        text = { Text(stringResource(R.string.rate_dialog_message)) },
+        confirmButton = {
+            TextButton(onClick = onRateNow) { Text(stringResource(R.string.rate_dialog_rate_now)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.rate_dialog_later)) }
+        }
+    )
 }
 
 @OptIn(ExperimentalFoundationApi::class)

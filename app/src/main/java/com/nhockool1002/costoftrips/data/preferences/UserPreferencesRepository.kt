@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.map
@@ -19,6 +20,8 @@ class UserPreferencesRepository(private val context: Context) {
         val CURRENCY = stringPreferencesKey("currency")
         val REMINDER_ENABLED = booleanPreferencesKey("reminder_enabled")
         val REMINDER_INTERVAL_HOURS = intPreferencesKey("reminder_interval_hours")
+        val RATE_DIALOG_LAST_SHOWN_AT = longPreferencesKey("rate_dialog_last_shown_at")
+        val RATE_DIALOG_DISMISSED_PERMANENTLY = booleanPreferencesKey("rate_dialog_dismissed_permanently")
     }
 
     val themeMode = context.dataStore.data.map { prefs ->
@@ -47,5 +50,19 @@ class UserPreferencesRepository(private val context: Context) {
 
     suspend fun setReminderIntervalHours(hours: Int) {
         context.dataStore.edit { it[Keys.REMINDER_INTERVAL_HOURS] = hours }
+    }
+
+    val rateDialogLastShownAt = context.dataStore.data.map { prefs -> prefs[Keys.RATE_DIALOG_LAST_SHOWN_AT] ?: 0L }
+
+    suspend fun setRateDialogLastShownAt(timestampMillis: Long) {
+        context.dataStore.edit { it[Keys.RATE_DIALOG_LAST_SHOWN_AT] = timestampMillis }
+    }
+
+    val rateDialogDismissedPermanently = context.dataStore.data.map { prefs ->
+        prefs[Keys.RATE_DIALOG_DISMISSED_PERMANENTLY] ?: false
+    }
+
+    suspend fun setRateDialogDismissedPermanently(dismissed: Boolean) {
+        context.dataStore.edit { it[Keys.RATE_DIALOG_DISMISSED_PERMANENTLY] = dismissed }
     }
 }
