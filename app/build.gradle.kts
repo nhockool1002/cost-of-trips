@@ -13,8 +13,8 @@ android {
         applicationId = "com.nhockool1002.costoftrips"
         minSdk = 24
         targetSdk = 35
-        versionCode = 7
-        versionName = "1.0.0.a5"
+        versionCode = 8
+        versionName = "1.0.0.a6"
 
         // The app only ships English (default) + Vietnamese strings, but
         // AndroidX libraries (AppCompat, Compose, etc.) bundle their own
