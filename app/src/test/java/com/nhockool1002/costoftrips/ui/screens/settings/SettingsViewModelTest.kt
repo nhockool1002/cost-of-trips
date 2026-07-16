@@ -14,6 +14,7 @@ import com.nhockool1002.costoftrips.data.preferences.ThemeMode
 import com.nhockool1002.costoftrips.data.preferences.UserPreferencesRepository
 import com.nhockool1002.costoftrips.data.repository.TripRepository
 import com.nhockool1002.costoftrips.testutil.InMemoryDatabaseFactory
+import com.nhockool1002.costoftrips.testutil.InMemoryPreferencesDataStoreFactory
 import com.nhockool1002.costoftrips.testutil.MainDispatcherRule
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -58,7 +59,7 @@ class SettingsViewModelTest {
 
         database = InMemoryDatabaseFactory.create()
         tripRepository = TripRepository(database.tripDao(), database.expenseDao(), database.tripMemberDao(), database.expenseSplitDao())
-        preferencesRepository = UserPreferencesRepository(context)
+        preferencesRepository = UserPreferencesRepository(InMemoryPreferencesDataStoreFactory.create())
         viewModel = SettingsViewModel(preferencesRepository, tripRepository, context)
         viewModelStore.put("settings", viewModel)
     }

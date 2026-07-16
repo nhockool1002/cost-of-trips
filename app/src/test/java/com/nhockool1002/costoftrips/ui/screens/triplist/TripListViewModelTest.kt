@@ -1,7 +1,5 @@
 package com.nhockool1002.costoftrips.ui.screens.triplist
 
-import android.content.Context
-import androidx.test.core.app.ApplicationProvider
 import com.nhockool1002.costoftrips.data.local.AppDatabase
 import com.nhockool1002.costoftrips.data.local.entity.Expense
 import com.nhockool1002.costoftrips.data.local.entity.ExpenseCategory
@@ -9,6 +7,7 @@ import com.nhockool1002.costoftrips.data.local.entity.Trip
 import com.nhockool1002.costoftrips.data.preferences.UserPreferencesRepository
 import com.nhockool1002.costoftrips.data.repository.TripRepository
 import com.nhockool1002.costoftrips.testutil.InMemoryDatabaseFactory
+import com.nhockool1002.costoftrips.testutil.InMemoryPreferencesDataStoreFactory
 import com.nhockool1002.costoftrips.testutil.MainDispatcherRule
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.flow.first
@@ -39,7 +38,7 @@ class TripListViewModelTest {
     fun setUp() {
         database = InMemoryDatabaseFactory.create()
         repository = TripRepository(database.tripDao(), database.expenseDao(), database.tripMemberDao(), database.expenseSplitDao())
-        preferencesRepository = UserPreferencesRepository(ApplicationProvider.getApplicationContext<Context>())
+        preferencesRepository = UserPreferencesRepository(InMemoryPreferencesDataStoreFactory.create())
     }
 
     @After

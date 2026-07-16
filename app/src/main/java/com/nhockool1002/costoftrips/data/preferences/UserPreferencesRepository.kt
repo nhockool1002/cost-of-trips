@@ -1,6 +1,8 @@
 package com.nhockool1002.costoftrips.data.preferences
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
@@ -9,11 +11,19 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.map
 
-private val Context.dataStore by preferencesDataStore(name = "settings")
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 enum class ThemeMode { LIGHT, DARK, SYSTEM }
 
-class UserPreferencesRepository(private val context: Context) {
+// Takes a DataStore directly (rather than building one from a Context internally) so tests can
+// supply an isolated, freshly-created instance instead of going through the Context.dataStore
+// delegate above, which is a process-wide singleton keyed by file path - sharing it across test
+// classes in the same JVM caused cross-test interference (in-flight writes from one test class's
+// leftover coroutines racing a later class's reads/writes) that showed up as sporadic
+// UncompletedCoroutinesError hangs.
+class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
+
+    constructor(context: Context) : this(context.dataStore)
 
     private object Keys {
         val THEME_MODE = stringPreferencesKey("theme_mode")
@@ -24,45 +34,45 @@ class UserPreferencesRepository(private val context: Context) {
         val RATE_DIALOG_DISMISSED_PERMANENTLY = booleanPreferencesKey("rate_dialog_dismissed_permanently")
     }
 
-    val themeMode = context.dataStore.data.map { prefs ->
+    val themeMode = dataStore.data.map { prefs ->
         prefs[Keys.THEME_MODE]?.let { ThemeMode.valueOf(it) } ?: ThemeMode.DARK
     }
 
     suspend fun setThemeMode(mode: ThemeMode) {
-        context.dataStore.edit { it[Keys.THEME_MODE] = mode.name }
+        dataStore.edit { it[Keys.THEME_MODE] = mode.name }
     }
 
-    val currency = context.dataStore.data.map { prefs ->
+    val currency = dataStore.data.map { prefs ->
         AppCurrency.fromCode(prefs[Keys.CURRENCY])
     }
 
     suspend fun setCurrency(currency: AppCurrency) {
-        context.dataStore.edit { it[Keys.CURRENCY] = currency.code }
+        dataStore.edit { it[Keys.CURRENCY] = currency.code }
     }
 
-    val reminderEnabled = context.dataStore.data.map { prefs -> prefs[Keys.REMINDER_ENABLED] ?: false }
+    val reminderEnabled = dataStore.data.map { prefs -> prefs[Keys.REMINDER_ENABLED] ?: false }
 
     suspend fun setReminderEnabled(enabled: Boolean) {
-        context.dataStore.edit { it[Keys.REMINDER_ENABLED] = enabled }
+        dataStore.edit { it[Keys.REMINDER_ENABLED] = enabled }
     }
 
-    val reminderIntervalHours = context.dataStore.data.map { prefs -> prefs[Keys.REMINDER_INTERVAL_HOURS] ?: 6 }
+    val reminderIntervalHours = dataStore.data.map { prefs -> prefs[Keys.REMINDER_INTERVAL_HOURS] ?: 6 }
 
     suspend fun setReminderIntervalHours(hours: Int) {
-        context.dataStore.edit { it[Keys.REMINDER_INTERVAL_HOURS] = hours }
+        dataStore.edit { it[Keys.REMINDER_INTERVAL_HOURS] = hours }
     }
 
-    val rateDialogLastShownAt = context.dataStore.data.map { prefs -> prefs[Keys.RATE_DIALOG_LAST_SHOWN_AT] ?: 0L }
+    val rateDialogLastShownAt = dataStore.data.map { prefs -> prefs[Keys.RATE_DIALOG_LAST_SHOWN_AT] ?: 0L }
 
     suspend fun setRateDialogLastShownAt(timestampMillis: Long) {
-        context.dataStore.edit { it[Keys.RATE_DIALOG_LAST_SHOWN_AT] = timestampMillis }
+        dataStore.edit { it[Keys.RATE_DIALOG_LAST_SHOWN_AT] = timestampMillis }
     }
 
-    val rateDialogDismissedPermanently = context.dataStore.data.map { prefs ->
+    val rateDialogDismissedPermanently = dataStore.data.map { prefs ->
         prefs[Keys.RATE_DIALOG_DISMISSED_PERMANENTLY] ?: false
     }
 
     suspend fun setRateDialogDismissedPermanently(dismissed: Boolean) {
-        context.dataStore.edit { it[Keys.RATE_DIALOG_DISMISSED_PERMANENTLY] = dismissed }
+        dataStore.edit { it[Keys.RATE_DIALOG_DISMISSED_PERMANENTLY] = dismissed }
     }
 }

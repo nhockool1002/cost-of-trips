@@ -1,7 +1,6 @@
 package com.nhockool1002.costoftrips.data.preferences
 
-import android.content.Context
-import androidx.test.core.app.ApplicationProvider
+import com.nhockool1002.costoftrips.testutil.InMemoryPreferencesDataStoreFactory
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -19,19 +18,7 @@ class UserPreferencesRepositoryTest {
 
     @Before
     fun setUp() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        repository = UserPreferencesRepository(context)
-        // preferencesDataStore() is a process-wide singleton keyed by file path (by design,
-        // to guard against two DataStore instances on one file), so it carries state across
-        // test methods in this JVM run regardless of Context identity - reset it via the
-        // repository's own API rather than touching the backing file, which wouldn't reset
-        // the already-cached in-memory DataStore instance anyway.
-        runTest {
-            repository.setThemeMode(ThemeMode.DARK)
-            repository.setCurrency(AppCurrency.VND)
-            repository.setReminderEnabled(false)
-            repository.setReminderIntervalHours(6)
-        }
+        repository = UserPreferencesRepository(InMemoryPreferencesDataStoreFactory.create())
     }
 
     @Test
