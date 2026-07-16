@@ -1,6 +1,7 @@
 package com.nhockool1002.costoftrips.ui.screens.settings
 
 import android.content.Context
+import androidx.lifecycle.ViewModelStore
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.testing.WorkManagerTestInitHelper
 import com.nhockool1002.costoftrips.data.local.AppDatabase
@@ -38,6 +39,14 @@ class SettingsViewModelTest {
     private lateinit var preferencesRepository: UserPreferencesRepository
     private lateinit var viewModel: SettingsViewModel
 
+    // SettingsViewModel eagerly launches 4 long-lived stateIn(WhileSubscribed) coroutines on
+    // viewModelScope at construction time; since viewModelScope now shares its dispatcher with
+    // runTest (see MainDispatcherRule), those never-completing coroutines can occasionally race
+    // with runTest's end-of-test idle check and trigger a spurious 1-minute
+    // UncompletedCoroutinesError. Routing every SettingsViewModel through this store and
+    // clearing it in @After properly cancels viewModelScope, avoiding that race entirely.
+    private val viewModelStore = ViewModelStore()
+
     @Before
     fun setUp() {
         val context = ApplicationProvider.getApplicationContext<Context>()
@@ -47,10 +56,12 @@ class SettingsViewModelTest {
         tripRepository = TripRepository(database.tripDao(), database.expenseDao(), database.tripMemberDao(), database.expenseSplitDao())
         preferencesRepository = UserPreferencesRepository(context)
         viewModel = SettingsViewModel(preferencesRepository, tripRepository, context)
+        viewModelStore.put("settings", viewModel)
     }
 
     @After
     fun tearDown() {
+        viewModelStore.clear()
         database.close()
     }
 
@@ -99,6 +110,7 @@ class SettingsViewModelTest {
                 freshDatabase.tripDao(), freshDatabase.expenseDao(), freshDatabase.tripMemberDao(), freshDatabase.expenseSplitDao()
             )
             val freshViewModel = SettingsViewModel(preferencesRepository, freshRepository, ApplicationProvider.getApplicationContext())
+            viewModelStore.put("settings-fresh", freshViewModel)
 
             val result = freshViewModel.importData(json)
 
