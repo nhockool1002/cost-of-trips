@@ -21,7 +21,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
+@Config(sdk = [34], application = android.app.Application::class)
 class TripRepositoryTest {
 
     private lateinit var database: AppDatabase
@@ -121,7 +121,7 @@ class TripRepositoryTest {
         repository.updateExpense(stored.copy(amount = 99.0, note = "updated"))
 
         val updated = repository.observeExpensesForTrip(tripId).first().first { it.id == expenseId }
-        assertEquals(99.0, updated.amount)
+        assertEquals(99.0, updated.amount, 0.0001)
         assertEquals("updated", updated.note)
     }
 

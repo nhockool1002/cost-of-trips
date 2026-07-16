@@ -16,7 +16,7 @@ import org.robolectric.annotation.Config
 private const val UNIQUE_WORK_NAME = "expense_reminder"
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
+@Config(sdk = [34], application = android.app.Application::class)
 class ReminderSchedulerTest {
 
     private lateinit var context: Context

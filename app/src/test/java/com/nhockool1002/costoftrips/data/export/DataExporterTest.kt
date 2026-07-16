@@ -41,7 +41,7 @@ class DataExporterTest {
 
         val importedExpense = importedTrip.expenses[0]
         assertEquals(ExpenseCategory.FOOD, importedExpense.expense.category)
-        assertEquals(200_000.0, importedExpense.expense.amount)
+        assertEquals(200_000.0, importedExpense.expense.amount, 0.0001)
         assertEquals("An", importedExpense.paidByName)
         assertEquals(setOf("An", "Binh"), importedExpense.splitWithNames.toSet())
     }
