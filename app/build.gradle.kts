@@ -141,6 +141,18 @@ dependencies {
     testImplementation("androidx.work:work-testing:2.9.1")
 }
 
+// Robolectric loads app classes through its own sandboxed classloader, which JaCoCo's default
+// coverage agent otherwise fails to attribute hits to (they show up as "no location" and get
+// dropped) - this is what was making Robolectric-only classes like ViewModels report 0%
+// coverage despite being fully exercised by tests. includeNoLocationClasses fixes that; the
+// jdk.internal.* exclude avoids JaCoCo choking on JDK internals Robolectric also loads this way.
+tasks.withType<Test>().configureEach {
+    extensions.configure<org.gradle.testing.jacoco.plugins.JacocoTaskExtension> {
+        isIncludeNoLocationClasses = true
+        excludes = listOf("jdk.internal.*")
+    }
+}
+
 // JVM unit-test coverage, scoped to the testable business logic (data layer,
 // util, notification scheduling, ViewModels) rather than Composable UI code,
 // which isn't meaningfully exercised by JUnit/Robolectric unit tests.
