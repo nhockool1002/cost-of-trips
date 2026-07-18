@@ -20,16 +20,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
@@ -62,9 +57,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nhockool1002.costoftrips.R
+import com.nhockool1002.costoftrips.data.local.entity.ChecklistItem
 import com.nhockool1002.costoftrips.data.local.entity.Expense
 import com.nhockool1002.costoftrips.data.local.entity.ExpenseCategory
 import com.nhockool1002.costoftrips.data.local.entity.TripMember
@@ -75,11 +72,18 @@ import com.nhockool1002.costoftrips.ui.screens.common.ProgressCard
 import com.nhockool1002.costoftrips.ui.screens.common.TripStatusBadge
 import com.nhockool1002.costoftrips.ui.screens.common.displayName
 import com.nhockool1002.costoftrips.ui.screens.common.emoji
+import com.nhockool1002.costoftrips.util.CurrencyAmountVisualTransformation
 import com.nhockool1002.costoftrips.util.CurrencyFormatter
-import com.nhockool1002.costoftrips.util.CurrencyGroupingVisualTransformation
 import com.nhockool1002.costoftrips.util.LocalCurrency
-import com.nhockool1002.costoftrips.util.sanitizeAmountInput
+import com.nhockool1002.costoftrips.util.amountToRawDigits
+import com.nhockool1002.costoftrips.util.rawDigitsToAmount
 import com.nhockool1002.costoftrips.util.tripStatus
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ArrowLeft
+import compose.icons.tablericons.Pencil
+import compose.icons.tablericons.Plus
+import compose.icons.tablericons.Trash
+import compose.icons.tablericons.X
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -159,7 +163,7 @@ fun TripDetailScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
+                        Icon(TablerIcons.ArrowLeft, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 actions = {
@@ -178,7 +182,7 @@ fun TripDetailScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 text = { Text(stringResource(R.string.trip_detail_add_expense)) },
-                icon = { Icon(Icons.Filled.Add, contentDescription = null) },
+                icon = { Icon(TablerIcons.Plus, contentDescription = null) },
                 onClick = onAddExpenseClick
             )
         }
@@ -215,6 +219,14 @@ fun TripDetailScreen(
                 item(key = "balances") {
                     BalancesCard(settlements = uiState.settlements)
                 }
+            }
+            item(key = "checklist") {
+                ChecklistSection(
+                    items = uiState.checklist,
+                    onToggle = { viewModel.toggleChecklistItem(it) },
+                    onDelete = { viewModel.deleteChecklistItem(it) },
+                    onAdd = { viewModel.addChecklistItem(it) }
+                )
             }
             if (orderedExpenses.isEmpty()) {
                 item(key = "empty-state") {
@@ -339,27 +351,25 @@ fun TripDetailScreen(
     }
 
     if (showBudgetDialog) {
-        var budgetInput by remember {
-            mutableStateOf(uiState.trip?.budget?.let { CurrencyFormatter.toInputString(it) }.orEmpty())
-        }
+        var budgetDigits by remember { mutableStateOf(amountToRawDigits(uiState.trip?.budget ?: 0.0, currency)) }
         AlertDialog(
             onDismissRequest = { showBudgetDialog = false },
             title = { Text(stringResource(R.string.trip_detail_budget_label)) },
             text = {
                 OutlinedTextField(
-                    value = budgetInput,
-                    onValueChange = { budgetInput = sanitizeAmountInput(it, currency) },
+                    value = budgetDigits,
+                    onValueChange = { input -> budgetDigits = input.filter { it.isDigit() } },
                     label = { Text(stringResource(R.string.trip_detail_budget_dialog_label)) },
                     suffix = { Text(currency.symbol) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    visualTransformation = CurrencyGroupingVisualTransformation(currency),
+                    visualTransformation = CurrencyAmountVisualTransformation(currency),
                     modifier = Modifier.fillMaxWidth()
                 )
             },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.setBudget(budgetInput.toDoubleOrNull())
+                    viewModel.setBudget(if (budgetDigits.isEmpty()) null else rawDigitsToAmount(budgetDigits, currency))
                     showBudgetDialog = false
                 }) { Text(stringResource(R.string.create_trip_save)) }
             },
@@ -478,7 +488,7 @@ private fun BudgetCard(budget: Double?, spent: Double, onEditClick: () -> Unit) 
         AssistChip(
             onClick = onEditClick,
             label = { Text(stringResource(R.string.trip_detail_budget_set)) },
-            leadingIcon = { Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp)) }
+            leadingIcon = { Icon(TablerIcons.Plus, contentDescription = null, modifier = Modifier.size(18.dp)) }
         )
         return
     }
@@ -489,7 +499,7 @@ private fun BudgetCard(budget: Double?, spent: Double, onEditClick: () -> Unit) 
         limit = budget,
         trailingIcon = { contentColor ->
             Icon(
-                Icons.Filled.Edit,
+                TablerIcons.Pencil,
                 contentDescription = stringResource(R.string.trip_detail_budget_edit),
                 tint = contentColor,
                 modifier = Modifier.size(18.dp)
@@ -519,7 +529,7 @@ private fun MembersSection(
                             modifier = Modifier.size(18.dp)
                         ) {
                             Icon(
-                                Icons.Filled.Close,
+                                TablerIcons.X,
                                 contentDescription = stringResource(R.string.common_delete),
                                 modifier = Modifier.size(14.dp)
                             )
@@ -531,8 +541,84 @@ private fun MembersSection(
                 AssistChip(
                     onClick = onAddClick,
                     label = { Text(stringResource(R.string.trip_detail_add_member)) },
-                    leadingIcon = { Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                    leadingIcon = { Icon(TablerIcons.Plus, contentDescription = null, modifier = Modifier.size(18.dp)) }
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChecklistSection(
+    items: List<ChecklistItem>,
+    onToggle: (ChecklistItem) -> Unit,
+    onDelete: (ChecklistItem) -> Unit,
+    onAdd: (String) -> Unit
+) {
+    var newItemText by remember { mutableStateOf("") }
+
+    Card(
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(stringResource(R.string.trip_detail_checklist_label), style = MaterialTheme.typography.titleMedium)
+
+            if (items.isEmpty()) {
+                Text(
+                    stringResource(R.string.trip_detail_checklist_empty),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            } else {
+                items.forEach { item ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Checkbox(checked = item.isChecked, onCheckedChange = { onToggle(item) })
+                        Text(
+                            item.text,
+                            style = MaterialTheme.typography.bodyLarge,
+                            textDecoration = if (item.isChecked) TextDecoration.LineThrough else null,
+                            color = if (item.isChecked) {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            } else {
+                                MaterialTheme.colorScheme.onSurface
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                        IconButton(onClick = { onDelete(item) }, modifier = Modifier.size(36.dp)) {
+                            Icon(
+                                TablerIcons.X,
+                                contentDescription = stringResource(R.string.common_delete),
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
+                OutlinedTextField(
+                    value = newItemText,
+                    onValueChange = { newItemText = it },
+                    placeholder = { Text(stringResource(R.string.trip_detail_checklist_add_hint)) },
+                    singleLine = true,
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier.weight(1f)
+                )
+                IconButton(
+                    onClick = {
+                        onAdd(newItemText)
+                        newItemText = ""
+                    },
+                    modifier = Modifier.padding(start = 4.dp)
+                ) {
+                    Icon(TablerIcons.Plus, contentDescription = stringResource(R.string.trip_detail_checklist_add_hint))
+                }
             }
         }
     }
@@ -608,7 +694,7 @@ private fun ExpenseCard(
                     }
                     IconButton(onClick = onDeleteClick) {
                         Icon(
-                            Icons.Filled.Delete,
+                            TablerIcons.Trash,
                             contentDescription = stringResource(R.string.common_delete),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )

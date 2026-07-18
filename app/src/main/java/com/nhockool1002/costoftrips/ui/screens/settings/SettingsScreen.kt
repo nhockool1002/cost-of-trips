@@ -26,9 +26,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ArrowLeft
+import compose.icons.tablericons.ChevronRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -69,9 +69,9 @@ import com.nhockool1002.costoftrips.data.preferences.AppCurrency
 import com.nhockool1002.costoftrips.data.preferences.AppLanguage
 import com.nhockool1002.costoftrips.data.preferences.ThemeMode
 import com.nhockool1002.costoftrips.ui.appViewModelFactory
-import com.nhockool1002.costoftrips.util.CurrencyFormatter
-import com.nhockool1002.costoftrips.util.CurrencyGroupingVisualTransformation
-import com.nhockool1002.costoftrips.util.sanitizeAmountInput
+import com.nhockool1002.costoftrips.util.CurrencyAmountVisualTransformation
+import com.nhockool1002.costoftrips.util.amountToRawDigits
+import com.nhockool1002.costoftrips.util.rawDigitsToAmount
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -123,7 +123,7 @@ fun SettingsScreen(onBack: () -> Unit, onAboutClick: () -> Unit) {
                 title = { Text(stringResource(R.string.settings_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
+                        Icon(TablerIcons.ArrowLeft, contentDescription = stringResource(R.string.common_back))
                     }
                 }
             )
@@ -268,36 +268,38 @@ fun SettingsScreen(onBack: () -> Unit, onAboutClick: () -> Unit) {
                 // than collectAsState: these fields are seeded exactly once from disk, so
                 // a synthetic "not loaded yet" StateFlow default would be indistinguishable
                 // from a real "no goal set" and could clobber a saved goal on screen entry.
-                var monthlyGoalInput by remember { mutableStateOf<String?>(null) }
-                var yearlyGoalInput by remember { mutableStateOf<String?>(null) }
+                var monthlyGoalDigits by remember { mutableStateOf<String?>(null) }
+                var yearlyGoalDigits by remember { mutableStateOf<String?>(null) }
                 LaunchedEffect(Unit) {
-                    monthlyGoalInput = viewModel.getMonthlyGoal()?.let { CurrencyFormatter.toInputString(it) }.orEmpty()
-                    yearlyGoalInput = viewModel.getYearlyGoal()?.let { CurrencyFormatter.toInputString(it) }.orEmpty()
+                    monthlyGoalDigits = amountToRawDigits(viewModel.getMonthlyGoal() ?: 0.0, currency)
+                    yearlyGoalDigits = amountToRawDigits(viewModel.getYearlyGoal() ?: 0.0, currency)
                 }
                 OutlinedTextField(
-                    value = monthlyGoalInput.orEmpty(),
-                    onValueChange = {
-                        monthlyGoalInput = sanitizeAmountInput(it, currency)
-                        viewModel.setMonthlyGoal(monthlyGoalInput?.toDoubleOrNull())
+                    value = monthlyGoalDigits.orEmpty(),
+                    onValueChange = { input ->
+                        val digits = input.filter { it.isDigit() }
+                        monthlyGoalDigits = digits
+                        viewModel.setMonthlyGoal(rawDigitsToAmount(digits, currency).takeIf { digits.isNotEmpty() })
                     },
                     label = { Text(stringResource(R.string.settings_goals_monthly_label)) },
                     suffix = { Text(currency.symbol) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    visualTransformation = CurrencyGroupingVisualTransformation(currency),
+                    visualTransformation = CurrencyAmountVisualTransformation(currency),
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
-                    value = yearlyGoalInput.orEmpty(),
-                    onValueChange = {
-                        yearlyGoalInput = sanitizeAmountInput(it, currency)
-                        viewModel.setYearlyGoal(yearlyGoalInput?.toDoubleOrNull())
+                    value = yearlyGoalDigits.orEmpty(),
+                    onValueChange = { input ->
+                        val digits = input.filter { it.isDigit() }
+                        yearlyGoalDigits = digits
+                        viewModel.setYearlyGoal(rawDigitsToAmount(digits, currency).takeIf { digits.isNotEmpty() })
                     },
                     label = { Text(stringResource(R.string.settings_goals_yearly_label)) },
                     suffix = { Text(currency.symbol) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    visualTransformation = CurrencyGroupingVisualTransformation(currency),
+                    visualTransformation = CurrencyAmountVisualTransformation(currency),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp)
@@ -470,7 +472,7 @@ private fun AboutRow(onClick: () -> Unit) {
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1f)
             )
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
+            Icon(TablerIcons.ChevronRight, contentDescription = null)
         }
     }
 }

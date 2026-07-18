@@ -3,6 +3,9 @@ package com.nhockool1002.costoftrips
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
@@ -15,6 +18,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,6 +48,13 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.android.play.core.appupdate.AppUpdateInfo
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.appupdate.AppUpdateOptions
+import com.google.android.play.core.install.InstallStateUpdatedListener
+import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.model.InstallStatus
+import com.google.android.play.core.install.model.UpdateAvailability
 import com.nhockool1002.costoftrips.data.preferences.AppCurrency
 import com.nhockool1002.costoftrips.data.preferences.ThemeMode
 import com.nhockool1002.costoftrips.ui.navigation.AppBottomBar
@@ -56,18 +70,86 @@ import com.nhockool1002.costoftrips.util.LocalCurrency
 // effect until the process is killed and relaunched. AppCompatActivity also
 // extends FragmentActivity, which BiometricPrompt requires for the app lock.
 class MainActivity : AppCompatActivity() {
+
+    private val appUpdateManager by lazy { AppUpdateManagerFactory.create(this) }
+    private lateinit var updateResultLauncher: ActivityResultLauncher<IntentSenderRequest>
+    private var updateReady by mutableStateOf(false)
+
+    // IMMEDIATE updates block the user with Play's own full-screen UI until they update,
+    // which is what "require the update" means here. FLEXIBLE is only a fallback for the
+    // rare case where Play doesn't allow an immediate update for this release; that one
+    // downloads in the background and needs an explicit restart, surfaced via the banner
+    // driven by updateReady below.
+    private val installStateListener = InstallStateUpdatedListener { state ->
+        if (state.installStatus() == InstallStatus.DOWNLOADED) {
+            updateReady = true
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent {
-            CostOfTripsRoot()
+
+        updateResultLauncher = registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) {
+            // No-op: onResume() re-checks appUpdateInfo and resumes a stalled/cancelled
+            // immediate update automatically, so nothing needs to happen here.
         }
+
+        setContent {
+            CostOfTripsRoot(
+                showUpdateReadyBanner = updateReady,
+                onRestartToUpdate = { appUpdateManager.completeUpdate() }
+            )
+        }
+
+        appUpdateManager.registerListener(installStateListener)
+        checkForAppUpdate()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        appUpdateManager.appUpdateInfo.addOnSuccessListener { info ->
+            when {
+                info.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS ->
+                    startUpdateFlow(info)
+                info.installStatus() == InstallStatus.DOWNLOADED -> updateReady = true
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        appUpdateManager.unregisterListener(installStateListener)
+        super.onDestroy()
+    }
+
+    private fun checkForAppUpdate() {
+        appUpdateManager.appUpdateInfo.addOnSuccessListener { info ->
+            if (info.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
+                startUpdateFlow(info)
+            }
+        }
+    }
+
+    private fun startUpdateFlow(info: AppUpdateInfo) {
+        val type = when {
+            info.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE) -> AppUpdateType.IMMEDIATE
+            info.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE) -> AppUpdateType.FLEXIBLE
+            else -> return
+        }
+        appUpdateManager.startUpdateFlowForResult(
+            info,
+            updateResultLauncher,
+            AppUpdateOptions.newBuilder(type).build()
+        )
     }
 }
 
 @Composable
-fun CostOfTripsRoot() {
+fun CostOfTripsRoot(
+    showUpdateReadyBanner: Boolean = false,
+    onRestartToUpdate: () -> Unit = {}
+) {
     val app = LocalContext.current.applicationContext as CostOfTripsApp
     val themeMode by app.userPreferencesRepository.themeMode.collectAsState(initial = ThemeMode.DARK)
     val currency by app.userPreferencesRepository.currency.collectAsState(initial = AppCurrency.VND)
@@ -90,10 +172,16 @@ fun CostOfTripsRoot() {
     CostOfTripsTheme(darkTheme = darkTheme) {
         CompositionLocalProvider(LocalCurrency provides currency) {
             Surface(modifier = Modifier.fillMaxSize()) {
+                val content: @Composable () -> Unit = {
+                    MainNavigation(
+                        showUpdateReadyBanner = showUpdateReadyBanner,
+                        onRestartToUpdate = onRestartToUpdate
+                    )
+                }
                 if (appLockEnabled) {
-                    AppLockGate { MainNavigation() }
+                    AppLockGate(content = content)
                 } else {
-                    MainNavigation()
+                    content()
                 }
             }
         }
@@ -101,13 +189,33 @@ fun CostOfTripsRoot() {
 }
 
 @Composable
-private fun MainNavigation() {
+private fun MainNavigation(
+    showUpdateReadyBanner: Boolean,
+    onRestartToUpdate: () -> Unit
+) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     val showBottomBar = currentRoute == Screen.TripList.route || currentRoute == Screen.Statistics.route
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val updateReadyMessage = stringResource(R.string.update_ready_message)
+    val updateReadyAction = stringResource(R.string.update_ready_restart)
+    LaunchedEffect(showUpdateReadyBanner) {
+        if (showUpdateReadyBanner) {
+            val result = snackbarHostState.showSnackbar(
+                message = updateReadyMessage,
+                actionLabel = updateReadyAction,
+                duration = SnackbarDuration.Indefinite
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                onRestartToUpdate()
+            }
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             if (showBottomBar) {
                 AppBottomBar(navController = navController, currentRoute = currentRoute)

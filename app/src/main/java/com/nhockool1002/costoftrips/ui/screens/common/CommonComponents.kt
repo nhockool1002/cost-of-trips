@@ -97,6 +97,8 @@ fun CuteTextField(
             label = { Text(label) },
             leadingIcon = badge,
             suffix = suffix,
+            isError = isError,
+            supportingText = supportingText,
             enabled = false,
             shape = shape,
             colors = OutlinedTextFieldDefaults.colors(

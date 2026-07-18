@@ -3,10 +3,12 @@ package com.nhockool1002.costoftrips.ui.screens.triplist
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nhockool1002.costoftrips.data.local.entity.Trip
+import com.nhockool1002.costoftrips.data.preferences.UserPreferencesRepository
 import com.nhockool1002.costoftrips.data.repository.TripRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -25,7 +27,8 @@ data class TripListUiState(
 )
 
 class TripListViewModel(
-    private val repository: TripRepository
+    private val repository: TripRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
     val uiState: StateFlow<TripListUiState> = repository.observeTrips()
@@ -69,4 +72,32 @@ class TripListViewModel(
     fun duplicateTrip(tripId: Long, newName: String) {
         viewModelScope.launch { repository.duplicateTrip(tripId, newName) }
     }
+
+    fun deleteTrip(trip: Trip) {
+        viewModelScope.launch { repository.deleteTrip(trip) }
+    }
+
+    // Shows the rate-app dialog at most once per calendar day, and never again once the
+    // user has rated (or the caller otherwise marks it permanently dismissed).
+    suspend fun shouldShowRateDialog(): Boolean {
+        if (userPreferencesRepository.rateDialogDismissedPermanently.first()) return false
+        val lastShownAt = userPreferencesRepository.rateDialogLastShownAt.first()
+        return !isSameDay(lastShownAt, System.currentTimeMillis())
+    }
+
+    fun onRateDialogShown() {
+        viewModelScope.launch { userPreferencesRepository.setRateDialogLastShownAt(System.currentTimeMillis()) }
+    }
+
+    fun onRateDialogRated() {
+        viewModelScope.launch { userPreferencesRepository.setRateDialogDismissedPermanently(true) }
+    }
+}
+
+internal fun isSameDay(millisA: Long, millisB: Long): Boolean {
+    if (millisA == 0L) return false
+    val calA = Calendar.getInstance().apply { timeInMillis = millisA }
+    val calB = Calendar.getInstance().apply { timeInMillis = millisB }
+    return calA.get(Calendar.YEAR) == calB.get(Calendar.YEAR) &&
+        calA.get(Calendar.DAY_OF_YEAR) == calB.get(Calendar.DAY_OF_YEAR)
 }

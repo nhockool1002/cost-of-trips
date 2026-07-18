@@ -11,6 +11,8 @@
     <string name="trip_list_search_placeholder">Tìm kiếm chuyến đi</string>
     <string name="trip_list_search_no_results">Không tìm thấy chuyến đi phù hợp</string>
     <string name="trip_list_duplicate_name">%1$s (Bản sao)</string>
+    <string name="trip_list_delete_trip">Xóa chuyến đi</string>
+    <string name="trip_list_delete_trip_message">Xóa chuyến đi \"%1$s\"? Toàn bộ chi phí liên quan cũng sẽ bị xóa và không thể hoàn tác.</string>
     <string name="nav_trips">Chuyến đi</string>
     <string name="nav_statistics">Thống kê</string>
     <string name="trip_list_analytics_title">Phân tích chi tiêu</string>
@@ -38,6 +40,7 @@
     <string name="create_trip_note_label">Ghi chú</string>
     <string name="create_trip_save">Lưu</string>
     <string name="create_trip_name_required">Vui lòng nhập tên chuyến đi</string>
+    <string name="create_trip_date_range_error">Ngày bắt đầu không được lớn hơn ngày kết thúc</string>
     <string name="create_trip_budget_label">Ngân sách (không bắt buộc)</string>
 
     <string name="trip_detail_total_label">Tổng chi phí</string>
@@ -66,6 +69,9 @@
     <string name="trip_detail_filter_to">Đến ngày</string>
     <string name="trip_detail_filter_clear">Xóa bộ lọc</string>
     <string name="trip_detail_filter_no_results">Không có khoản chi nào khớp với bộ lọc</string>
+    <string name="trip_detail_checklist_label">✅ Checklist</string>
+    <string name="trip_detail_checklist_add_hint">Thêm việc cần chuẩn bị…</string>
+    <string name="trip_detail_checklist_empty">Chưa có việc nào — thêm mục đầu tiên nhé.</string>
 
     <string name="add_expense_title">Chi phí mới</string>
     <string name="add_expense_category_label">Hạng mục</string>
@@ -115,6 +121,15 @@
     <string name="settings_about_credit">Thực hiện bởi Dev1002 © 2026</string>
     <string name="settings_about_version">Phiên bản %1$s</string>
     <string name="about_coffee_button">Buy me a coffee</string>
+    <string name="about_rate_button">⭐ Đánh giá ứng dụng</string>
+
+    <string name="rate_dialog_title">Bạn có thích Cost Of Trips không?</string>
+    <string name="rate_dialog_message">Nếu ứng dụng hữu ích với bạn, hãy dành chút thời gian đánh giá trên Google Play nhé!</string>
+    <string name="rate_dialog_rate_now">Đánh giá ngay</string>
+    <string name="rate_dialog_later">Để sau</string>
+
+    <string name="update_ready_message">Đã tải xong bản cập nhật, sẵn sàng để cài đặt.</string>
+    <string name="update_ready_restart">Khởi động lại</string>
 
     <string name="settings_support_label">Hỗ trợ</string>
     <string name="settings_report_bug">🐛 Báo lỗi</string>

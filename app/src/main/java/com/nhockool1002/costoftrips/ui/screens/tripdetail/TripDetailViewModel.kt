@@ -2,6 +2,7 @@ package com.nhockool1002.costoftrips.ui.screens.tripdetail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nhockool1002.costoftrips.data.local.entity.ChecklistItem
 import com.nhockool1002.costoftrips.data.local.entity.Expense
 import com.nhockool1002.costoftrips.data.local.entity.Trip
 import com.nhockool1002.costoftrips.data.local.entity.TripMember
@@ -22,7 +23,8 @@ data class TripDetailUiState(
     val total: Double = 0.0,
     val members: List<TripMember> = emptyList(),
     val splitMemberIdsByExpenseId: Map<Long, List<Long>> = emptyMap(),
-    val settlements: List<SettlementSuggestion> = emptyList()
+    val settlements: List<SettlementSuggestion> = emptyList(),
+    val checklist: List<ChecklistItem> = emptyList()
 )
 
 class TripDetailViewModel(
@@ -34,8 +36,9 @@ class TripDetailViewModel(
         repository.observeTrip(tripId),
         repository.observeExpensesForTrip(tripId),
         repository.observeMembersForTrip(tripId),
-        repository.observeSplitsForTrip(tripId)
-    ) { trip, expenses, members, splits ->
+        repository.observeSplitsForTrip(tripId),
+        repository.observeChecklistForTrip(tripId)
+    ) { trip, expenses, members, splits, checklist ->
         val splitMemberIdsByExpenseId = splits.groupBy({ it.expenseId }, { it.memberId })
 
         val balances = members.associate { it.id to 0.0 }.toMutableMap()
@@ -61,7 +64,8 @@ class TripDetailViewModel(
             total = expenses.sumOf { it.amount },
             members = members,
             splitMemberIdsByExpenseId = splitMemberIdsByExpenseId,
-            settlements = settlements
+            settlements = settlements,
+            checklist = checklist
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TripDetailUiState())
 
@@ -91,5 +95,22 @@ class TripDetailViewModel(
     fun setBudget(budget: Double?) {
         val trip = uiState.value.trip ?: return
         viewModelScope.launch { repository.updateTrip(trip.copy(budget = budget)) }
+    }
+
+    fun addChecklistItem(text: String) {
+        val trimmed = text.trim()
+        if (trimmed.isEmpty()) return
+        val nextOrder = (uiState.value.checklist.maxOfOrNull { it.sortOrder } ?: -1) + 1
+        viewModelScope.launch {
+            repository.addChecklistItem(ChecklistItem(tripId = tripId, text = trimmed, sortOrder = nextOrder))
+        }
+    }
+
+    fun toggleChecklistItem(item: ChecklistItem) {
+        viewModelScope.launch { repository.updateChecklistItem(item.copy(isChecked = !item.isChecked)) }
+    }
+
+    fun deleteChecklistItem(item: ChecklistItem) {
+        viewModelScope.launch { repository.deleteChecklistItem(item) }
     }
 }

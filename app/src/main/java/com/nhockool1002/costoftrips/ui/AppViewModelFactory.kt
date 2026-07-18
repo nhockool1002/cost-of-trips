@@ -25,7 +25,7 @@ class AppViewModelFactory(
     override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
         return when {
             modelClass.isAssignableFrom(TripListViewModel::class.java) ->
-                TripListViewModel(tripRepository) as T
+                TripListViewModel(tripRepository, userPreferencesRepository) as T
             modelClass.isAssignableFrom(CreateTripViewModel::class.java) ->
                 CreateTripViewModel(tripRepository) as T
             modelClass.isAssignableFrom(TripDetailViewModel::class.java) ->

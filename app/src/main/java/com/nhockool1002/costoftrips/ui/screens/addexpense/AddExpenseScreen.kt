@@ -11,8 +11,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ArrowLeft
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -45,9 +45,9 @@ import com.nhockool1002.costoftrips.data.local.entity.ExpenseCategory
 import com.nhockool1002.costoftrips.ui.appViewModelFactory
 import com.nhockool1002.costoftrips.ui.screens.common.CuteTextField
 import com.nhockool1002.costoftrips.ui.screens.common.badgeColor
-import com.nhockool1002.costoftrips.util.CurrencyGroupingVisualTransformation
+import com.nhockool1002.costoftrips.util.CurrencyAmountVisualTransformation
 import com.nhockool1002.costoftrips.util.LocalCurrency
-import com.nhockool1002.costoftrips.util.sanitizeAmountInput
+import com.nhockool1002.costoftrips.util.rawDigitsToAmount
 import com.nhockool1002.costoftrips.ui.screens.common.displayName
 import com.nhockool1002.costoftrips.ui.screens.common.emoji
 
@@ -63,7 +63,7 @@ fun AddExpenseScreen(
     val currency = LocalCurrency.current
 
     var category by rememberSaveable { mutableStateOf(ExpenseCategory.OTHER) }
-    var amountText by rememberSaveable { mutableStateOf("") }
+    var amountDigits by rememberSaveable { mutableStateOf("") }
     var note by rememberSaveable { mutableStateOf("") }
     var showError by rememberSaveable { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
@@ -85,7 +85,7 @@ fun AddExpenseScreen(
                 title = { Text(stringResource(R.string.add_expense_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
+                        Icon(TablerIcons.ArrowLeft, contentDescription = stringResource(R.string.common_back))
                     }
                 }
             )
@@ -121,8 +121,8 @@ fun AddExpenseScreen(
             }
 
             CuteTextField(
-                value = amountText,
-                onValueChange = { amountText = sanitizeAmountInput(it, currency); showError = false },
+                value = amountDigits,
+                onValueChange = { input -> amountDigits = input.filter { it.isDigit() }; showError = false },
                 label = stringResource(R.string.add_expense_amount_label),
                 emoji = "💵",
                 emojiContainerColor = category.badgeColor(),
@@ -133,7 +133,7 @@ fun AddExpenseScreen(
                 },
                 textStyle = MaterialTheme.typography.headlineMedium,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                visualTransformation = CurrencyGroupingVisualTransformation(currency),
+                visualTransformation = CurrencyAmountVisualTransformation(currency),
                 modifier = Modifier.fillMaxWidth()
             )
             CuteTextField(
@@ -177,8 +177,8 @@ fun AddExpenseScreen(
 
             Button(
                 onClick = {
-                    val amount = amountText.toDoubleOrNull()
-                    if (amount == null || amount <= 0.0) {
+                    val amount = rawDigitsToAmount(amountDigits, currency)
+                    if (amount <= 0.0) {
                         showError = true
                     } else {
                         viewModel.addExpense(

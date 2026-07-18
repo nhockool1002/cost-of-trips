@@ -11,6 +11,8 @@
     <string name="trip_list_search_placeholder">Search trips</string>
     <string name="trip_list_search_no_results">No trips match your search</string>
     <string name="trip_list_duplicate_name">%1$s (Copy)</string>
+    <string name="trip_list_delete_trip">Delete trip</string>
+    <string name="trip_list_delete_trip_message">Delete \"%1$s\"? All its expenses will be deleted too, and this can\'t be undone.</string>
     <string name="nav_trips">Trips</string>
     <string name="nav_statistics">Statistics</string>
     <string name="trip_list_analytics_title">Spending overview</string>
@@ -38,6 +40,7 @@
     <string name="create_trip_note_label">Note</string>
     <string name="create_trip_save">Save</string>
     <string name="create_trip_name_required">Trip name is required</string>
+    <string name="create_trip_date_range_error">Start date can\'t be after the end date</string>
     <string name="create_trip_budget_label">Budget (optional)</string>
 
     <string name="trip_detail_total_label">Total spent</string>
@@ -66,6 +69,9 @@
     <string name="trip_detail_filter_to">To</string>
     <string name="trip_detail_filter_clear">Clear filters</string>
     <string name="trip_detail_filter_no_results">No expenses match your filters</string>
+    <string name="trip_detail_checklist_label">✅ Checklist</string>
+    <string name="trip_detail_checklist_add_hint">Add an item…</string>
+    <string name="trip_detail_checklist_empty">Nothing to prepare yet — add your first item.</string>
 
     <string name="add_expense_title">New Expense</string>
     <string name="add_expense_category_label">Category</string>
@@ -115,6 +121,15 @@
     <string name="settings_about_credit">Made with ❤️ by Dev1002 © 2026</string>
     <string name="settings_about_version">Version %1$s</string>
     <string name="about_coffee_button">Buy me a coffee</string>
+    <string name="about_rate_button">⭐ Rate this app</string>
+
+    <string name="rate_dialog_title">Enjoying Cost Of Trips?</string>
+    <string name="rate_dialog_message">If the app has been useful, a quick rating on Google Play really helps us out!</string>
+    <string name="rate_dialog_rate_now">Rate now</string>
+    <string name="rate_dialog_later">Later</string>
+
+    <string name="update_ready_message">An update has been downloaded and is ready to install.</string>
+    <string name="update_ready_restart">Restart</string>
 
     <string name="settings_support_label">Support</string>
     <string name="settings_report_bug">🐛 Report a bug</string>

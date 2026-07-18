@@ -12,8 +12,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ArrowLeft
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import com.nhockool1002.costoftrips.BuildConfig
 import com.nhockool1002.costoftrips.R
 import com.nhockool1002.costoftrips.ui.theme.CookieFamily
+import com.nhockool1002.costoftrips.util.openPlayStoreListing
 
 private const val BUY_ME_A_COFFEE_URL = "https://www.buymeacoffee.com/nhutnm"
 private val BmcGreen = Color(0xFF40DCA5)
@@ -51,7 +52,7 @@ fun AboutScreen(onBack: () -> Unit) {
                 title = { Text(stringResource(R.string.settings_about_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
+                        Icon(TablerIcons.ArrowLeft, contentDescription = stringResource(R.string.common_back))
                     }
                 }
             )
@@ -125,6 +126,13 @@ fun AboutScreen(onBack: () -> Unit) {
                     fontFamily = CookieFamily,
                     fontSize = 22.sp
                 )
+            }
+            Button(
+                onClick = { openPlayStoreListing(context) },
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.padding(top = 12.dp)
+            ) {
+                Text(stringResource(R.string.about_rate_button))
             }
         }
     }

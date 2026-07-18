@@ -3,7 +3,6 @@ package com.nhockool1002.costoftrips.ui.screens.triplist
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,10 +24,12 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
+import compose.icons.TablerIcons
+import compose.icons.tablericons.X
+import compose.icons.tablericons.Trash
+import compose.icons.tablericons.Search
+import compose.icons.tablericons.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -39,6 +40,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
@@ -62,12 +64,14 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nhockool1002.costoftrips.R
+import com.nhockool1002.costoftrips.data.local.entity.Trip
 import com.nhockool1002.costoftrips.ui.appViewModelFactory
 import com.nhockool1002.costoftrips.ui.screens.common.GradientStatCard
 import com.nhockool1002.costoftrips.ui.screens.common.TripStatusBadge
 import com.nhockool1002.costoftrips.util.CurrencyFormatter
 import com.nhockool1002.costoftrips.util.LocalCurrency
 import com.nhockool1002.costoftrips.util.TripStatus
+import com.nhockool1002.costoftrips.util.openPlayStoreListing
 import com.nhockool1002.costoftrips.util.tripStatus
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
@@ -85,7 +89,7 @@ private fun formatTripDuration(startDate: Long, endDate: Long): String {
     return "${format.format(Date(startDate))} - ${format.format(Date(endDate))}"
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun TripListScreen(
     onTripClick: (Long) -> Unit,
@@ -99,6 +103,17 @@ fun TripListScreen(
 
     var orderedTrips by remember { mutableStateOf(uiState.trips) }
     LaunchedEffect(uiState.trips) { orderedTrips = uiState.trips }
+
+    var contextMenuTripId by remember { mutableStateOf<Long?>(null) }
+    var tripToDelete by remember { mutableStateOf<Trip?>(null) }
+
+    var showRateDialog by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        if (viewModel.shouldShowRateDialog()) {
+            showRateDialog = true
+            viewModel.onRateDialogShown()
+        }
+    }
 
     var isSearchActive by rememberSaveable { mutableStateOf(false) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
@@ -163,7 +178,7 @@ fun TripListScreen(
                             isSearchActive = false
                             searchQuery = ""
                         }) {
-                            Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_close_search))
+                            Icon(TablerIcons.X, contentDescription = stringResource(R.string.action_close_search))
                         }
                     }
                 },
@@ -171,11 +186,11 @@ fun TripListScreen(
                     if (!isSearchActive) {
                         if (orderedTrips.isNotEmpty()) {
                             IconButton(onClick = { isSearchActive = true }) {
-                                Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.action_search))
+                                Icon(TablerIcons.Search, contentDescription = stringResource(R.string.action_search))
                             }
                         }
                         IconButton(onClick = onSettingsClick) {
-                            Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.action_settings))
+                            Icon(TablerIcons.Settings, contentDescription = stringResource(R.string.action_settings))
                         }
                     }
                 }
@@ -242,11 +257,16 @@ fun TripListScreen(
                                     }
                                 ),
                                 onClick = { onTripClick(item.trip.id) },
+                                onLongClick = { contextMenuTripId = item.trip.id },
+                                showContextMenu = contextMenuTripId == item.trip.id,
+                                onDismissContextMenu = { contextMenuTripId = null },
                                 onDuplicateClick = {
-                                    viewModel.duplicateTrip(
-                                        item.trip.id,
-                                        duplicateTripName
-                                    )
+                                    viewModel.duplicateTrip(item.trip.id, duplicateTripName)
+                                    contextMenuTripId = null
+                                },
+                                onDeleteClick = {
+                                    tripToDelete = item.trip
+                                    contextMenuTripId = null
                                 }
                             )
                         }
@@ -266,11 +286,16 @@ fun TripListScreen(
                             total = item.total,
                             dragModifier = null,
                             onClick = { onTripClick(item.trip.id) },
+                            onLongClick = { contextMenuTripId = item.trip.id },
+                            showContextMenu = contextMenuTripId == item.trip.id,
+                            onDismissContextMenu = { contextMenuTripId = null },
                             onDuplicateClick = {
-                                viewModel.duplicateTrip(
-                                    item.trip.id,
-                                    duplicateTripName
-                                )
+                                viewModel.duplicateTrip(item.trip.id, duplicateTripName)
+                                contextMenuTripId = null
+                            },
+                            onDeleteClick = {
+                                tripToDelete = item.trip
+                                contextMenuTripId = null
                             }
                         )
                     }
@@ -278,6 +303,52 @@ fun TripListScreen(
             }
         }
     }
+
+    tripToDelete?.let { trip ->
+        AlertDialog(
+            onDismissRequest = { tripToDelete = null },
+            title = { Text(stringResource(R.string.trip_list_delete_trip)) },
+            text = { Text(stringResource(R.string.trip_list_delete_trip_message, trip.name)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.deleteTrip(trip)
+                    tripToDelete = null
+                }) { Text(stringResource(R.string.common_delete)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { tripToDelete = null }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            }
+        )
+    }
+
+    if (showRateDialog) {
+        RateAppDialog(
+            onRateNow = {
+                viewModel.onRateDialogRated()
+                openPlayStoreListing(context)
+                showRateDialog = false
+            },
+            onDismiss = { showRateDialog = false }
+        )
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun RateAppDialog(onRateNow: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.rate_dialog_title)) },
+        text = { Text(stringResource(R.string.rate_dialog_message)) },
+        confirmButton = {
+            TextButton(onClick = onRateNow) { Text(stringResource(R.string.rate_dialog_rate_now)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.rate_dialog_later)) }
+        }
+    )
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -291,85 +362,90 @@ private fun TripCard(
     total: Double,
     dragModifier: Modifier?,
     onClick: () -> Unit,
-    onDuplicateClick: () -> Unit
+    onLongClick: () -> Unit,
+    showContextMenu: Boolean,
+    onDismissContextMenu: () -> Unit,
+    onDuplicateClick: () -> Unit,
+    onDeleteClick: () -> Unit
 ) {
     val currency = LocalCurrency.current
-    var showMenu by remember { mutableStateOf(false) }
     Box(modifier = Modifier.fillMaxWidth()) {
         Card(
             shape = RoundedCornerShape(22.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
             modifier = Modifier
                 .fillMaxWidth()
-                .combinedClickable(onClick = onClick, onLongClick = { showMenu = true })
+                .combinedClickable(onClick = onClick, onLongClick = onLongClick)
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(emoji, style = MaterialTheme.typography.titleMedium)
-                }
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 10.dp)
-                ) {
-                    Text(name, style = MaterialTheme.typography.titleMedium)
-                    if (destination.isNotBlank()) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(emoji, style = MaterialTheme.typography.titleMedium)
+                    }
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = 10.dp)
+                    ) {
+                        Text(name, style = MaterialTheme.typography.titleMedium)
+                        if (destination.isNotBlank()) {
+                            Text(
+                                "📍 $destination",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    TripStatusBadge(status = status)
+                    if (dragModifier != null) {
                         Text(
-                            "📍 $destination",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            "☰",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = dragModifier.padding(start = 6.dp)
                         )
                     }
                 }
-                TripStatusBadge(status = status)
-                if (dragModifier != null) {
-                    Text(
-                        "☰",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = dragModifier.padding(start = 6.dp)
-                    )
-                }
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    "📅 $duration",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f)
-                )
-                Box(
+                Row(
                     modifier = Modifier
-                        .background(MaterialTheme.colorScheme.tertiaryContainer, RoundedCornerShape(999.dp))
-                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        CurrencyFormatter.format(total, currency),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onTertiaryContainer
+                        "📅 $duration",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f)
                     )
+                    Box(
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.tertiaryContainer, RoundedCornerShape(999.dp))
+                            .padding(horizontal = 10.dp, vertical = 5.dp)
+                    ) {
+                        Text(
+                            CurrencyFormatter.format(total, currency),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                        )
+                    }
                 }
             }
-            }
         }
-        DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+        DropdownMenu(expanded = showContextMenu, onDismissRequest = onDismissContextMenu) {
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.common_duplicate)) },
                 leadingIcon = { Text("📋") },
-                onClick = {
-                    showMenu = false
-                    onDuplicateClick()
-                }
+                onClick = onDuplicateClick
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.trip_list_delete_trip)) },
+                leadingIcon = { Icon(TablerIcons.Trash, contentDescription = null) },
+                onClick = onDeleteClick
             )
         }
     }

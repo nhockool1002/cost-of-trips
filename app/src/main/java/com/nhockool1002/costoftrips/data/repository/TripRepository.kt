@@ -1,10 +1,12 @@
 package com.nhockool1002.costoftrips.data.repository
 
 import com.nhockool1002.costoftrips.data.export.ImportedTrip
+import com.nhockool1002.costoftrips.data.local.dao.ChecklistItemDao
 import com.nhockool1002.costoftrips.data.local.dao.ExpenseDao
 import com.nhockool1002.costoftrips.data.local.dao.ExpenseSplitDao
 import com.nhockool1002.costoftrips.data.local.dao.TripDao
 import com.nhockool1002.costoftrips.data.local.dao.TripMemberDao
+import com.nhockool1002.costoftrips.data.local.entity.ChecklistItem
 import com.nhockool1002.costoftrips.data.local.entity.Expense
 import com.nhockool1002.costoftrips.data.local.entity.ExpenseSplitMember
 import com.nhockool1002.costoftrips.data.local.entity.Trip
@@ -15,7 +17,8 @@ class TripRepository(
     private val tripDao: TripDao,
     private val expenseDao: ExpenseDao,
     private val tripMemberDao: TripMemberDao,
-    private val expenseSplitDao: ExpenseSplitDao
+    private val expenseSplitDao: ExpenseSplitDao,
+    private val checklistItemDao: ChecklistItemDao
 ) {
     fun observeTrips(): Flow<List<Trip>> = tripDao.observeTrips()
 
@@ -31,6 +34,9 @@ class TripRepository(
 
     fun observeSplitsForTrip(tripId: Long): Flow<List<ExpenseSplitMember>> =
         expenseSplitDao.observeSplitsForTrip(tripId)
+
+    fun observeChecklistForTrip(tripId: Long): Flow<List<ChecklistItem>> =
+        checklistItemDao.observeItemsForTrip(tripId)
 
     suspend fun createTrip(trip: Trip): Long = tripDao.insert(trip)
 
@@ -85,6 +91,12 @@ class TripRepository(
 
     suspend fun deleteMember(member: TripMember) = tripMemberDao.deleteAndClear(member)
 
+    suspend fun addChecklistItem(item: ChecklistItem): Long = checklistItemDao.insert(item)
+
+    suspend fun updateChecklistItem(item: ChecklistItem) = checklistItemDao.update(item)
+
+    suspend fun deleteChecklistItem(item: ChecklistItem) = checklistItemDao.delete(item)
+
     suspend fun getAllTrips(): List<Trip> = tripDao.getAllTrips()
 
     suspend fun getAllExpenses(): List<Expense> = expenseDao.getAllExpenses()
@@ -92,6 +104,8 @@ class TripRepository(
     suspend fun getAllMembers(): List<TripMember> = tripMemberDao.getAllMembers()
 
     suspend fun getAllSplits(): List<ExpenseSplitMember> = expenseSplitDao.getAllSplits()
+
+    suspend fun getAllChecklistItems(): List<ChecklistItem> = checklistItemDao.getAllItems()
 
     suspend fun reorderTrips(orderedTripIds: List<Long>) = tripDao.reorder(orderedTripIds)
 
@@ -114,6 +128,11 @@ class TripRepository(
                 if (splitIds.isNotEmpty()) {
                     expenseSplitDao.replaceSplitsForExpense(expenseId, splitIds)
                 }
+            }
+            importedTrip.checklist.forEachIndexed { index, importedItem ->
+                checklistItemDao.insert(
+                    ChecklistItem(tripId = tripId, text = importedItem.text, isChecked = importedItem.isChecked, sortOrder = index)
+                )
             }
         }
         return importedTrips.size
