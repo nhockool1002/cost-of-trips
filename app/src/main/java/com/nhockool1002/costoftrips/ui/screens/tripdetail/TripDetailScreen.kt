@@ -1,7 +1,10 @@
 package com.nhockool1002.costoftrips.ui.screens.tripdetail
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -27,18 +30,24 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -49,7 +58,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -58,18 +66,27 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nhockool1002.costoftrips.R
 import com.nhockool1002.costoftrips.data.local.entity.Expense
+import com.nhockool1002.costoftrips.data.local.entity.ExpenseCategory
 import com.nhockool1002.costoftrips.data.local.entity.TripMember
 import com.nhockool1002.costoftrips.ui.appViewModelFactory
 import com.nhockool1002.costoftrips.ui.screens.common.CategoryIcon
 import com.nhockool1002.costoftrips.ui.screens.common.GradientStatCard
+import com.nhockool1002.costoftrips.ui.screens.common.ProgressCard
 import com.nhockool1002.costoftrips.ui.screens.common.TripStatusBadge
 import com.nhockool1002.costoftrips.ui.screens.common.displayName
+import com.nhockool1002.costoftrips.ui.screens.common.emoji
 import com.nhockool1002.costoftrips.util.CurrencyFormatter
+import com.nhockool1002.costoftrips.util.CurrencyGroupingVisualTransformation
 import com.nhockool1002.costoftrips.util.LocalCurrency
+import com.nhockool1002.costoftrips.util.sanitizeAmountInput
 import com.nhockool1002.costoftrips.util.tripStatus
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
+import java.text.DateFormat
+import java.util.Date
+
+private enum class FilterDateTarget { FROM, TO }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,6 +107,23 @@ fun TripDetailScreen(
     var expenseToDelete by remember { mutableStateOf<Expense?>(null) }
     var showAddMemberDialog by remember { mutableStateOf(false) }
     var showBudgetDialog by remember { mutableStateOf(false) }
+
+    var showFilterDialog by remember { mutableStateOf(false) }
+    var filterCategories by remember { mutableStateOf(emptySet<ExpenseCategory>()) }
+    var filterMemberIds by remember { mutableStateOf(emptySet<Long>()) }
+    var filterFromDate by remember { mutableStateOf<Long?>(null) }
+    var filterToDate by remember { mutableStateOf<Long?>(null) }
+    var filterDateTarget by remember { mutableStateOf<FilterDateTarget?>(null) }
+    val isFilterActive = filterCategories.isNotEmpty() || filterMemberIds.isNotEmpty() ||
+        filterFromDate != null || filterToDate != null
+    val filteredExpenses = remember(orderedExpenses, filterCategories, filterMemberIds, filterFromDate, filterToDate) {
+        orderedExpenses.filter { expense ->
+            (filterCategories.isEmpty() || expense.category in filterCategories) &&
+                (filterMemberIds.isEmpty() || expense.paidByMemberId in filterMemberIds) &&
+                (filterFromDate == null || expense.date >= filterFromDate!!) &&
+                (filterToDate == null || expense.date <= filterToDate!!)
+        }
+    }
 
     val lazyListState = rememberLazyListState()
     val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
@@ -126,6 +160,17 @@ fun TripDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
+                    }
+                },
+                actions = {
+                    if (uiState.expenses.isNotEmpty()) {
+                        IconButton(onClick = { showFilterDialog = true }) {
+                            Text(
+                                "▼",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = if (isFilterActive) MaterialTheme.colorScheme.primary else LocalContentColor.current
+                            )
+                        }
                     }
                 }
             )
@@ -190,9 +235,26 @@ fun TripDetailScreen(
                         )
                     }
                 }
-            } else {
+            } else if (filteredExpenses.isEmpty()) {
+                item(key = "filter-no-results") {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 40.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("🔍", style = MaterialTheme.typography.headlineMedium)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            stringResource(R.string.trip_detail_filter_no_results),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            } else if (!isFilterActive) {
                 val memberNameById = uiState.members.associate { it.id to it.name }
-                items(orderedExpenses, key = { it.id }) { expense ->
+                items(filteredExpenses, key = { it.id }) { expense ->
                     ReorderableItem(reorderableState, key = expense.id) { _ ->
                         ExpenseCard(
                             expense = expense,
@@ -205,9 +267,25 @@ fun TripDetailScreen(
                                     }
                                 }
                             ),
+                            onDuplicateClick = { viewModel.duplicateExpense(expense) },
                             onDeleteClick = { expenseToDelete = expense }
                         )
                     }
+                }
+            } else {
+                // While filtering, indices no longer line up with the full
+                // orderedExpenses list, so reordering is disabled and no drag
+                // handle is shown.
+                val memberNameById = uiState.members.associate { it.id to it.name }
+                items(filteredExpenses, key = { it.id }) { expense ->
+                    ExpenseCard(
+                        expense = expense,
+                        paidByName = expense.paidByMemberId?.let { memberNameById[it] },
+                        splitCount = uiState.splitMemberIdsByExpenseId[expense.id]?.size ?: 0,
+                        dragModifier = null,
+                        onDuplicateClick = { viewModel.duplicateExpense(expense) },
+                        onDeleteClick = { expenseToDelete = expense }
+                    )
                 }
             }
         }
@@ -261,18 +339,21 @@ fun TripDetailScreen(
     }
 
     if (showBudgetDialog) {
-        var budgetInput by remember { mutableStateOf(uiState.trip?.budget?.toString().orEmpty()) }
+        var budgetInput by remember {
+            mutableStateOf(uiState.trip?.budget?.let { CurrencyFormatter.toInputString(it) }.orEmpty())
+        }
         AlertDialog(
             onDismissRequest = { showBudgetDialog = false },
             title = { Text(stringResource(R.string.trip_detail_budget_label)) },
             text = {
                 OutlinedTextField(
                     value = budgetInput,
-                    onValueChange = { budgetInput = it },
+                    onValueChange = { budgetInput = sanitizeAmountInput(it, currency) },
                     label = { Text(stringResource(R.string.trip_detail_budget_dialog_label)) },
                     suffix = { Text(currency.symbol) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    visualTransformation = CurrencyGroupingVisualTransformation(currency),
                     modifier = Modifier.fillMaxWidth()
                 )
             },
@@ -289,11 +370,110 @@ fun TripDetailScreen(
             }
         )
     }
+
+    if (showFilterDialog) {
+        val dateFormat = remember { DateFormat.getDateInstance(DateFormat.SHORT) }
+        AlertDialog(
+            onDismissRequest = { showFilterDialog = false },
+            title = { Text(stringResource(R.string.trip_detail_filter_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(stringResource(R.string.trip_detail_filter_category), style = MaterialTheme.typography.labelLarge)
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(ExpenseCategory.entries) { category ->
+                            FilterChip(
+                                selected = category in filterCategories,
+                                onClick = {
+                                    filterCategories = if (category in filterCategories) {
+                                        filterCategories - category
+                                    } else {
+                                        filterCategories + category
+                                    }
+                                },
+                                label = { Text("${category.emoji()} ${category.displayName()}") }
+                            )
+                        }
+                    }
+                    if (uiState.members.isNotEmpty()) {
+                        Text(stringResource(R.string.trip_detail_filter_payer), style = MaterialTheme.typography.labelLarge)
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(uiState.members, key = { it.id }) { member ->
+                                FilterChip(
+                                    selected = member.id in filterMemberIds,
+                                    onClick = {
+                                        filterMemberIds = if (member.id in filterMemberIds) {
+                                            filterMemberIds - member.id
+                                        } else {
+                                            filterMemberIds + member.id
+                                        }
+                                    },
+                                    label = { Text(member.name) }
+                                )
+                            }
+                        }
+                    }
+                    Text(stringResource(R.string.trip_detail_filter_date_range), style = MaterialTheme.typography.labelLarge)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        AssistChip(
+                            onClick = { filterDateTarget = FilterDateTarget.FROM },
+                            label = {
+                                Text(filterFromDate?.let { dateFormat.format(Date(it)) } ?: stringResource(R.string.trip_detail_filter_from))
+                            }
+                        )
+                        AssistChip(
+                            onClick = { filterDateTarget = FilterDateTarget.TO },
+                            label = {
+                                Text(filterToDate?.let { dateFormat.format(Date(it)) } ?: stringResource(R.string.trip_detail_filter_to))
+                            }
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showFilterDialog = false }) {
+                    Text(stringResource(R.string.common_close))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    enabled = isFilterActive,
+                    onClick = {
+                        filterCategories = emptySet()
+                        filterMemberIds = emptySet()
+                        filterFromDate = null
+                        filterToDate = null
+                    }
+                ) { Text(stringResource(R.string.trip_detail_filter_clear)) }
+            }
+        )
+    }
+
+    filterDateTarget?.let { target ->
+        val initial = if (target == FilterDateTarget.FROM) filterFromDate else filterToDate
+        val state = rememberDatePickerState(initialSelectedDateMillis = initial)
+        DatePickerDialog(
+            onDismissRequest = { filterDateTarget = null },
+            confirmButton = {
+                TextButton(onClick = {
+                    state.selectedDateMillis?.let {
+                        if (target == FilterDateTarget.FROM) filterFromDate = it else filterToDate = it
+                    }
+                    filterDateTarget = null
+                }) { Text(stringResource(R.string.create_trip_save)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { filterDateTarget = null }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            }
+        ) {
+            DatePicker(state = state)
+        }
+    }
 }
 
 @Composable
 private fun BudgetCard(budget: Double?, spent: Double, onEditClick: () -> Unit) {
-    val currency = LocalCurrency.current
     if (budget == null) {
         AssistChip(
             onClick = onEditClick,
@@ -303,55 +483,20 @@ private fun BudgetCard(budget: Double?, spent: Double, onEditClick: () -> Unit) 
         return
     }
 
-    val remaining = budget - spent
-    val isOverBudget = remaining < 0
-    val containerColor = if (isOverBudget) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.tertiaryContainer
-    val contentColor = if (isOverBudget) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onTertiaryContainer
-    val progress = if (budget > 0) (spent / budget).toFloat().coerceIn(0f, 1f) else 1f
-
-    Card(
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = containerColor.copy(alpha = 0.4f)),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onEditClick)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    stringResource(R.string.trip_detail_budget_label),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f)
-                )
-                Icon(
-                    Icons.Filled.Edit,
-                    contentDescription = stringResource(R.string.trip_detail_budget_edit),
-                    tint = contentColor,
-                    modifier = Modifier.size(18.dp)
-                )
-            }
-            LinearProgressIndicator(
-                progress = { progress },
-                color = contentColor,
-                trackColor = contentColor.copy(alpha = 0.2f),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp)
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp))
+    ProgressCard(
+        title = stringResource(R.string.trip_detail_budget_label),
+        current = spent,
+        limit = budget,
+        trailingIcon = { contentColor ->
+            Icon(
+                Icons.Filled.Edit,
+                contentDescription = stringResource(R.string.trip_detail_budget_edit),
+                tint = contentColor,
+                modifier = Modifier.size(18.dp)
             )
-            Text(
-                text = if (isOverBudget) {
-                    stringResource(R.string.trip_detail_budget_over, CurrencyFormatter.format(-remaining, currency))
-                } else {
-                    stringResource(R.string.trip_detail_budget_remaining, CurrencyFormatter.format(remaining, currency))
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                color = contentColor,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-        }
-    }
+        },
+        onClick = onEditClick
+    )
 }
 
 @Composable
@@ -418,65 +563,84 @@ private fun BalancesCard(settlements: List<SettlementSuggestion>) {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ExpenseCard(
     expense: Expense,
     paidByName: String?,
     splitCount: Int,
-    dragModifier: Modifier,
+    dragModifier: Modifier?,
+    onDuplicateClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
-    Card(
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                CategoryIcon(expense.category)
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 14.dp)
-                ) {
-                    Text(expense.category.displayName(), style = MaterialTheme.typography.titleMedium)
-                    if (expense.note.isNotBlank()) {
+    var showMenu by remember { mutableStateOf(false) }
+    Box(modifier = Modifier.fillMaxWidth()) {
+        Card(
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .combinedClickable(onClick = {}, onLongClick = { showMenu = true })
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    CategoryIcon(expense.category)
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = 14.dp)
+                    ) {
+                        Text(expense.category.displayName(), style = MaterialTheme.typography.titleMedium)
+                        if (expense.note.isNotBlank()) {
+                            Text(
+                                expense.note,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    if (dragModifier != null) {
                         Text(
-                            expense.note,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            "☰",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = dragModifier.padding(horizontal = 8.dp)
+                        )
+                    }
+                    IconButton(onClick = onDeleteClick) {
+                        Icon(
+                            Icons.Filled.Delete,
+                            contentDescription = stringResource(R.string.common_delete),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
-                Text(
-                    "☰",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = dragModifier.padding(horizontal = 8.dp)
-                )
-                IconButton(onClick = onDeleteClick) {
-                    Icon(
-                        Icons.Filled.Delete,
-                        contentDescription = stringResource(R.string.common_delete),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                if (paidByName != null && splitCount > 0) {
+                    Text(
+                        stringResource(R.string.trip_detail_paid_by_split, paidByName, splitCount),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp)
                     )
                 }
-            }
-            if (paidByName != null && splitCount > 0) {
                 Text(
-                    stringResource(R.string.trip_detail_paid_by_split, paidByName, splitCount),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp)
+                    CurrencyFormatter.format(expense.amount, LocalCurrency.current),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
                 )
             }
-            Text(
-                CurrencyFormatter.format(expense.amount, LocalCurrency.current),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.End,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp)
+        }
+        DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.common_duplicate)) },
+                leadingIcon = { Text("📋") },
+                onClick = {
+                    showMenu = false
+                    onDuplicateClick()
+                }
             )
         }
     }

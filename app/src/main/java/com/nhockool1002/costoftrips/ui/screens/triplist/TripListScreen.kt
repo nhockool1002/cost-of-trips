@@ -1,8 +1,10 @@
 package com.nhockool1002.costoftrips.ui.screens.triplist
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -29,6 +31,8 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -221,6 +225,7 @@ fun TripListScreen(
                     }
                 } else if (searchQuery.isBlank()) {
                     items(displayedTrips, key = { it.trip.id }) { item ->
+                        val duplicateTripName = stringResource(R.string.trip_list_duplicate_name, item.trip.name)
                         ReorderableItem(reorderableState, key = item.trip.id) { _ ->
                             TripCard(
                                 emoji = tripEmojiFor(item.trip.id),
@@ -236,7 +241,13 @@ fun TripListScreen(
                                         }
                                     }
                                 ),
-                                onClick = { onTripClick(item.trip.id) }
+                                onClick = { onTripClick(item.trip.id) },
+                                onDuplicateClick = {
+                                    viewModel.duplicateTrip(
+                                        item.trip.id,
+                                        duplicateTripName
+                                    )
+                                }
                             )
                         }
                     }
@@ -245,6 +256,7 @@ fun TripListScreen(
                     // orderedTrips list, so reordering is disabled and no drag
                     // handle is shown.
                     items(displayedTrips, key = { it.trip.id }) { item ->
+                        val duplicateTripName = stringResource(R.string.trip_list_duplicate_name, item.trip.name)
                         TripCard(
                             emoji = tripEmojiFor(item.trip.id),
                             name = item.trip.name,
@@ -253,7 +265,13 @@ fun TripListScreen(
                             status = tripStatus(item.trip.startDate, item.trip.endDate),
                             total = item.total,
                             dragModifier = null,
-                            onClick = { onTripClick(item.trip.id) }
+                            onClick = { onTripClick(item.trip.id) },
+                            onDuplicateClick = {
+                                viewModel.duplicateTrip(
+                                    item.trip.id,
+                                    duplicateTripName
+                                )
+                            }
                         )
                     }
                 }
@@ -262,6 +280,7 @@ fun TripListScreen(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun TripCard(
     emoji: String,
@@ -271,17 +290,20 @@ private fun TripCard(
     status: TripStatus,
     total: Double,
     dragModifier: Modifier?,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onDuplicateClick: () -> Unit
 ) {
     val currency = LocalCurrency.current
-    Card(
-        shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+    var showMenu by remember { mutableStateOf(false) }
+    Box(modifier = Modifier.fillMaxWidth()) {
+        Card(
+            shape = RoundedCornerShape(22.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .combinedClickable(onClick = onClick, onLongClick = { showMenu = true })
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
@@ -338,6 +360,17 @@ private fun TripCard(
                     )
                 }
             }
+            }
+        }
+        DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.common_duplicate)) },
+                leadingIcon = { Text("📋") },
+                onClick = {
+                    showMenu = false
+                    onDuplicateClick()
+                }
+            )
         }
     }
 }

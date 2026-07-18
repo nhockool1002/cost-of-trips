@@ -13,6 +13,9 @@ interface TripMemberDao {
     @Query("SELECT * FROM trip_members WHERE tripId = :tripId ORDER BY id ASC")
     fun observeMembersForTrip(tripId: Long): Flow<List<TripMember>>
 
+    @Query("SELECT * FROM trip_members WHERE tripId = :tripId ORDER BY id ASC")
+    suspend fun getMembersForTrip(tripId: Long): List<TripMember>
+
     @Query("SELECT * FROM trip_members")
     suspend fun getAllMembers(): List<TripMember>
 

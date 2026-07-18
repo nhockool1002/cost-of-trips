@@ -2,6 +2,7 @@ package com.nhockool1002.costoftrips.data.preferences
 
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -19,6 +20,9 @@ class UserPreferencesRepository(private val context: Context) {
         val CURRENCY = stringPreferencesKey("currency")
         val REMINDER_ENABLED = booleanPreferencesKey("reminder_enabled")
         val REMINDER_INTERVAL_HOURS = intPreferencesKey("reminder_interval_hours")
+        val APP_LOCK_ENABLED = booleanPreferencesKey("app_lock_enabled")
+        val MONTHLY_GOAL = doublePreferencesKey("monthly_goal")
+        val YEARLY_GOAL = doublePreferencesKey("yearly_goal")
     }
 
     val themeMode = context.dataStore.data.map { prefs ->
@@ -47,5 +51,27 @@ class UserPreferencesRepository(private val context: Context) {
 
     suspend fun setReminderIntervalHours(hours: Int) {
         context.dataStore.edit { it[Keys.REMINDER_INTERVAL_HOURS] = hours }
+    }
+
+    val appLockEnabled = context.dataStore.data.map { prefs -> prefs[Keys.APP_LOCK_ENABLED] ?: false }
+
+    suspend fun setAppLockEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.APP_LOCK_ENABLED] = enabled }
+    }
+
+    val monthlyGoal = context.dataStore.data.map { prefs -> prefs[Keys.MONTHLY_GOAL] }
+
+    suspend fun setMonthlyGoal(goal: Double?) {
+        context.dataStore.edit { prefs ->
+            if (goal == null) prefs.remove(Keys.MONTHLY_GOAL) else prefs[Keys.MONTHLY_GOAL] = goal
+        }
+    }
+
+    val yearlyGoal = context.dataStore.data.map { prefs -> prefs[Keys.YEARLY_GOAL] }
+
+    suspend fun setYearlyGoal(goal: Double?) {
+        context.dataStore.edit { prefs ->
+            if (goal == null) prefs.remove(Keys.YEARLY_GOAL) else prefs[Keys.YEARLY_GOAL] = goal
+        }
     }
 }

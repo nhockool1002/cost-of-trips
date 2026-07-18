@@ -18,6 +18,9 @@ interface ExpenseSplitDao {
     @Query("SELECT * FROM expense_split_members WHERE expenseId IN (SELECT id FROM expenses WHERE tripId = :tripId)")
     fun observeSplitsForTrip(tripId: Long): Flow<List<ExpenseSplitMember>>
 
+    @Query("SELECT * FROM expense_split_members WHERE expenseId IN (SELECT id FROM expenses WHERE tripId = :tripId)")
+    suspend fun getSplitsForTrip(tripId: Long): List<ExpenseSplitMember>
+
     @Query("SELECT * FROM expense_split_members")
     suspend fun getAllSplits(): List<ExpenseSplitMember>
 

@@ -10,6 +10,7 @@
     <string name="trip_list_add_trip">Add trip</string>
     <string name="trip_list_search_placeholder">Search trips</string>
     <string name="trip_list_search_no_results">No trips match your search</string>
+    <string name="trip_list_duplicate_name">%1$s (Copy)</string>
     <string name="nav_trips">Trips</string>
     <string name="nav_statistics">Statistics</string>
     <string name="trip_list_analytics_title">Spending overview</string>
@@ -19,6 +20,8 @@
     <string name="trip_list_analytics_no_data">Not enough data yet</string>
     <string name="trip_list_analytics_category_breakdown">Spending by category</string>
     <string name="trip_list_analytics_monthly_trend">Last 6 months</string>
+    <string name="statistics_monthly_goal_label">🎯 Monthly goal</string>
+    <string name="statistics_yearly_goal_label">🎯 Yearly goal</string>
     <string name="trip_status_upcoming">🔜 Upcoming</string>
     <string name="trip_status_ongoing">🟢 Ongoing</string>
     <string name="trip_status_completed">✅ Completed</string>
@@ -46,7 +49,7 @@
     <string name="trip_detail_members_label">👥 Members</string>
     <string name="trip_detail_add_member">Add member</string>
     <string name="trip_detail_member_name_label">Name</string>
-    <string name="trip_detail_balances_label">💸 Balances</string>
+    <string name="trip_detail_balances_label">💸 Settle Up</string>
     <string name="trip_detail_settlement_line">%1$s owes %2$s %3$s</string>
     <string name="trip_detail_paid_by_split">💰 %1$s paid · split %2$d ways</string>
     <string name="trip_detail_budget_label">🎯 Budget</string>
@@ -55,6 +58,14 @@
     <string name="trip_detail_budget_dialog_label">Budget amount</string>
     <string name="trip_detail_budget_remaining">%1$s remaining</string>
     <string name="trip_detail_budget_over">Over budget by %1$s</string>
+    <string name="trip_detail_filter_title">🔍 Filter expenses</string>
+    <string name="trip_detail_filter_category">Category</string>
+    <string name="trip_detail_filter_payer">Paid by</string>
+    <string name="trip_detail_filter_date_range">Date range</string>
+    <string name="trip_detail_filter_from">From</string>
+    <string name="trip_detail_filter_to">To</string>
+    <string name="trip_detail_filter_clear">Clear filters</string>
+    <string name="trip_detail_filter_no_results">No expenses match your filters</string>
 
     <string name="add_expense_title">New Expense</string>
     <string name="add_expense_category_label">Category</string>
@@ -80,11 +91,17 @@
     <string name="settings_theme_dark">Dark</string>
     <string name="settings_theme_system">System default</string>
     <string name="settings_currency_label">Currency</string>
-    <string name="settings_reminders_label">🔔 Reminders</string>
+    <string name="settings_reminders_label">Reminders</string>
     <string name="settings_reminders_enable">Remind me to log expenses</string>
     <string name="settings_reminders_interval_label">Reminder interval</string>
     <string name="settings_reminders_interval_hours">Every %1$d hours</string>
     <string name="settings_reminders_permission_denied">Notification permission is needed for reminders</string>
+    <string name="settings_applock_label">App lock</string>
+    <string name="settings_applock_enable">Require fingerprint / PIN to open</string>
+    <string name="settings_applock_unavailable">Set up a fingerprint, face, or screen lock on this device to use app lock</string>
+    <string name="settings_goals_label">Spending goals</string>
+    <string name="settings_goals_monthly_label">Monthly goal (optional)</string>
+    <string name="settings_goals_yearly_label">Yearly goal (optional)</string>
     <string name="settings_data_label">Data</string>
     <string name="settings_export_data">Export all data</string>
     <string name="settings_export_success">Data exported to Downloads</string>
@@ -107,6 +124,16 @@
     <string name="common_cancel">Cancel</string>
     <string name="common_back">Back</string>
     <string name="common_delete">Delete</string>
+    <string name="common_duplicate">Duplicate</string>
+    <string name="common_close">Close</string>
+
+    <string name="applock_locked_title">🔒 Cost of Trips is locked</string>
+    <string name="applock_locked_subtitle">Verify it\'s you to continue</string>
+    <string name="applock_unlock_button">Unlock</string>
+    <string name="applock_prompt_title">Unlock Cost of Trips</string>
+
+    <string name="widget_description">Shows the total spent on your current trip</string>
+    <string name="widget_total_all_trips">Total spent</string>
 
     <string name="notification_channel_name">Expense reminders</string>
     <string name="notification_channel_description">Periodic reminders to log your trip expenses</string>

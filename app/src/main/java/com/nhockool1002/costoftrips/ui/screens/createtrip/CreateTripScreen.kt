@@ -42,7 +42,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nhockool1002.costoftrips.R
 import com.nhockool1002.costoftrips.ui.appViewModelFactory
 import com.nhockool1002.costoftrips.ui.screens.common.CuteTextField
+import com.nhockool1002.costoftrips.util.CurrencyGroupingVisualTransformation
 import com.nhockool1002.costoftrips.util.LocalCurrency
+import com.nhockool1002.costoftrips.util.sanitizeAmountInput
 import java.text.DateFormat
 import java.util.Date
 
@@ -56,6 +58,7 @@ fun CreateTripScreen(
 ) {
     val context = LocalContext.current
     val viewModel: CreateTripViewModel = viewModel(factory = appViewModelFactory(context))
+    val currency = LocalCurrency.current
 
     var name by rememberSaveable { mutableStateOf("") }
     var destination by rememberSaveable { mutableStateOf("") }
@@ -130,11 +133,12 @@ fun CreateTripScreen(
             )
             CuteTextField(
                 value = budgetText,
-                onValueChange = { budgetText = it },
+                onValueChange = { budgetText = sanitizeAmountInput(it, currency) },
                 label = stringResource(R.string.create_trip_budget_label),
                 emoji = "🎯",
-                suffix = { Text(LocalCurrency.current.symbol) },
+                suffix = { Text(currency.symbol) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                visualTransformation = CurrencyGroupingVisualTransformation(currency),
                 modifier = Modifier.fillMaxWidth()
             )
             CuteTextField(

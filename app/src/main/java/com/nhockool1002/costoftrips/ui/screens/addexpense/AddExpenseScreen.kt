@@ -45,7 +45,9 @@ import com.nhockool1002.costoftrips.data.local.entity.ExpenseCategory
 import com.nhockool1002.costoftrips.ui.appViewModelFactory
 import com.nhockool1002.costoftrips.ui.screens.common.CuteTextField
 import com.nhockool1002.costoftrips.ui.screens.common.badgeColor
+import com.nhockool1002.costoftrips.util.CurrencyGroupingVisualTransformation
 import com.nhockool1002.costoftrips.util.LocalCurrency
+import com.nhockool1002.costoftrips.util.sanitizeAmountInput
 import com.nhockool1002.costoftrips.ui.screens.common.displayName
 import com.nhockool1002.costoftrips.ui.screens.common.emoji
 
@@ -58,6 +60,7 @@ fun AddExpenseScreen(
 ) {
     val context = LocalContext.current
     val viewModel: AddExpenseViewModel = viewModel(factory = appViewModelFactory(context, tripId))
+    val currency = LocalCurrency.current
 
     var category by rememberSaveable { mutableStateOf(ExpenseCategory.OTHER) }
     var amountText by rememberSaveable { mutableStateOf("") }
@@ -119,17 +122,18 @@ fun AddExpenseScreen(
 
             CuteTextField(
                 value = amountText,
-                onValueChange = { amountText = it; showError = false },
+                onValueChange = { amountText = sanitizeAmountInput(it, currency); showError = false },
                 label = stringResource(R.string.add_expense_amount_label),
                 emoji = "💵",
                 emojiContainerColor = category.badgeColor(),
-                suffix = { Text(LocalCurrency.current.symbol) },
+                suffix = { Text(currency.symbol) },
                 isError = showError,
                 supportingText = {
                     if (showError) Text(stringResource(R.string.add_expense_amount_required))
                 },
                 textStyle = MaterialTheme.typography.headlineMedium,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                visualTransformation = CurrencyGroupingVisualTransformation(currency),
                 modifier = Modifier.fillMaxWidth()
             )
             CuteTextField(

@@ -35,7 +35,7 @@ class AppViewModelFactory(
             modelClass.isAssignableFrom(SettingsViewModel::class.java) ->
                 SettingsViewModel(userPreferencesRepository, tripRepository, appContext) as T
             modelClass.isAssignableFrom(StatisticsViewModel::class.java) ->
-                StatisticsViewModel(tripRepository) as T
+                StatisticsViewModel(tripRepository, userPreferencesRepository) as T
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }
     }

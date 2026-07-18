@@ -65,4 +65,8 @@ class TripListViewModel(
     fun reorderTrips(orderedTripIds: List<Long>) {
         viewModelScope.launch { repository.reorderTrips(orderedTripIds) }
     }
+
+    fun duplicateTrip(tripId: Long, newName: String) {
+        viewModelScope.launch { repository.duplicateTrip(tripId, newName) }
+    }
 }

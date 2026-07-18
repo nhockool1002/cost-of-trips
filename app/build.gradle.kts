@@ -115,5 +115,9 @@ dependencies {
 
     implementation("androidx.work:work-runtime-ktx:2.9.1")
 
+    implementation("androidx.biometric:biometric:1.1.0")
+
+    implementation("androidx.glance:glance-appwidget:1.1.1")
+
     debugImplementation("androidx.compose.ui:ui-tooling")
 }

@@ -14,6 +14,9 @@ interface ExpenseDao {
     @Query("SELECT * FROM expenses WHERE tripId = :tripId ORDER BY sortOrder ASC, date DESC")
     fun observeExpensesForTrip(tripId: Long): Flow<List<Expense>>
 
+    @Query("SELECT * FROM expenses WHERE tripId = :tripId ORDER BY sortOrder ASC, date DESC")
+    suspend fun getExpensesForTrip(tripId: Long): List<Expense>
+
     @Query("SELECT * FROM expenses")
     fun observeAllExpenses(): Flow<List<Expense>>
 

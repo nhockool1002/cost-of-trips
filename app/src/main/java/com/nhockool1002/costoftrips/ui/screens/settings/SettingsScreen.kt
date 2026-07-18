@@ -11,10 +11,12 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.biometric.BiometricManager
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -46,6 +48,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,6 +59,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.os.LocaleListCompat
@@ -65,6 +69,9 @@ import com.nhockool1002.costoftrips.data.preferences.AppCurrency
 import com.nhockool1002.costoftrips.data.preferences.AppLanguage
 import com.nhockool1002.costoftrips.data.preferences.ThemeMode
 import com.nhockool1002.costoftrips.ui.appViewModelFactory
+import com.nhockool1002.costoftrips.util.CurrencyFormatter
+import com.nhockool1002.costoftrips.util.CurrencyGroupingVisualTransformation
+import com.nhockool1002.costoftrips.util.sanitizeAmountInput
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,6 +83,7 @@ fun SettingsScreen(onBack: () -> Unit, onAboutClick: () -> Unit) {
     val currency by viewModel.currency.collectAsState()
     val reminderEnabled by viewModel.reminderEnabled.collectAsState()
     val reminderIntervalHours by viewModel.reminderIntervalHours.collectAsState()
+    val appLockEnabled by viewModel.appLockEnabled.collectAsState()
     val scope = rememberCoroutineScope()
 
     val permissionDeniedMessage = stringResource(R.string.settings_reminders_permission_denied)
@@ -221,6 +229,79 @@ fun SettingsScreen(onBack: () -> Unit, onAboutClick: () -> Unit) {
                         }
                     }
                 }
+            }
+
+            SettingsSection(icon = "🔒", title = stringResource(R.string.settings_applock_label)) {
+                val biometricManager = remember { BiometricManager.from(context) }
+                val canAuthenticate = remember {
+                    biometricManager.canAuthenticate(
+                        BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL
+                    ) == BiometricManager.BIOMETRIC_SUCCESS
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        stringResource(R.string.settings_applock_enable),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Switch(
+                        checked = appLockEnabled && canAuthenticate,
+                        enabled = canAuthenticate,
+                        onCheckedChange = { checked -> viewModel.setAppLockEnabled(checked) }
+                    )
+                }
+                if (!canAuthenticate) {
+                    Text(
+                        stringResource(R.string.settings_applock_unavailable),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            }
+
+            SettingsSection(icon = "🎯", title = stringResource(R.string.settings_goals_label)) {
+                // Loaded once via a one-shot suspend read (see SettingsViewModel) rather
+                // than collectAsState: these fields are seeded exactly once from disk, so
+                // a synthetic "not loaded yet" StateFlow default would be indistinguishable
+                // from a real "no goal set" and could clobber a saved goal on screen entry.
+                var monthlyGoalInput by remember { mutableStateOf<String?>(null) }
+                var yearlyGoalInput by remember { mutableStateOf<String?>(null) }
+                LaunchedEffect(Unit) {
+                    monthlyGoalInput = viewModel.getMonthlyGoal()?.let { CurrencyFormatter.toInputString(it) }.orEmpty()
+                    yearlyGoalInput = viewModel.getYearlyGoal()?.let { CurrencyFormatter.toInputString(it) }.orEmpty()
+                }
+                OutlinedTextField(
+                    value = monthlyGoalInput.orEmpty(),
+                    onValueChange = {
+                        monthlyGoalInput = sanitizeAmountInput(it, currency)
+                        viewModel.setMonthlyGoal(monthlyGoalInput?.toDoubleOrNull())
+                    },
+                    label = { Text(stringResource(R.string.settings_goals_monthly_label)) },
+                    suffix = { Text(currency.symbol) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    visualTransformation = CurrencyGroupingVisualTransformation(currency),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = yearlyGoalInput.orEmpty(),
+                    onValueChange = {
+                        yearlyGoalInput = sanitizeAmountInput(it, currency)
+                        viewModel.setYearlyGoal(yearlyGoalInput?.toDoubleOrNull())
+                    },
+                    label = { Text(stringResource(R.string.settings_goals_yearly_label)) },
+                    suffix = { Text(currency.symbol) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    visualTransformation = CurrencyGroupingVisualTransformation(currency),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                )
             }
 
             SettingsSection(icon = "📤", title = stringResource(R.string.settings_data_label)) {

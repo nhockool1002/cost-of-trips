@@ -11,6 +11,7 @@ import com.nhockool1002.costoftrips.data.repository.TripRepository
 import com.nhockool1002.costoftrips.notification.ReminderScheduler
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -58,6 +59,30 @@ class SettingsViewModel(
                 ReminderScheduler.schedule(appContext, hours)
             }
         }
+    }
+
+    val appLockEnabled: StateFlow<Boolean> = preferencesRepository.appLockEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    fun setAppLockEnabled(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setAppLockEnabled(enabled) }
+    }
+
+    // Exposed as one-shot suspend reads rather than a StateFlow: a StateFlow needs a
+    // synthetic initial value before the real DataStore read completes, and since these
+    // goals are themselves nullable (no goal set), that placeholder is indistinguishable
+    // from "loaded, no goal set" — which made the input field flash back to blank on
+    // every screen entry, even after a goal had been saved.
+    suspend fun getMonthlyGoal(): Double? = preferencesRepository.monthlyGoal.first()
+
+    fun setMonthlyGoal(goal: Double?) {
+        viewModelScope.launch { preferencesRepository.setMonthlyGoal(goal) }
+    }
+
+    suspend fun getYearlyGoal(): Double? = preferencesRepository.yearlyGoal.first()
+
+    fun setYearlyGoal(goal: Double?) {
+        viewModelScope.launch { preferencesRepository.setYearlyGoal(goal) }
     }
 
     suspend fun exportData(): String {

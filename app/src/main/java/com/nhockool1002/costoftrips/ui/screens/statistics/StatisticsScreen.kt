@@ -30,6 +30,7 @@ import com.nhockool1002.costoftrips.R
 import com.nhockool1002.costoftrips.ui.appViewModelFactory
 import com.nhockool1002.costoftrips.ui.screens.common.BarDatum
 import com.nhockool1002.costoftrips.ui.screens.common.DonutSlice
+import com.nhockool1002.costoftrips.ui.screens.common.ProgressCard
 import com.nhockool1002.costoftrips.ui.screens.common.SpendingDonutChart
 import com.nhockool1002.costoftrips.ui.screens.common.TrendBarChart
 import com.nhockool1002.costoftrips.ui.screens.common.badgeColor
@@ -43,6 +44,8 @@ fun StatisticsScreen() {
     val context = LocalContext.current
     val viewModel: StatisticsViewModel = viewModel(factory = appViewModelFactory(context))
     val uiState by viewModel.uiState.collectAsState()
+    val monthlyGoal by viewModel.monthlyGoal.collectAsState()
+    val yearlyGoal by viewModel.yearlyGoal.collectAsState()
     val analytics = uiState.analytics
     val currency = LocalCurrency.current
 
@@ -71,6 +74,24 @@ fun StatisticsScreen() {
             item(key = "monthly-trend") {
                 ChartCard(title = stringResource(R.string.trip_list_analytics_monthly_trend)) {
                     TrendBarChart(bars = uiState.monthlyTrend.map { BarDatum(it.label, it.total) })
+                }
+            }
+            monthlyGoal?.let { goal ->
+                item(key = "monthly-goal") {
+                    ProgressCard(
+                        title = stringResource(R.string.statistics_monthly_goal_label),
+                        current = analytics.monthlyTotal,
+                        limit = goal
+                    )
+                }
+            }
+            yearlyGoal?.let { goal ->
+                item(key = "yearly-goal") {
+                    ProgressCard(
+                        title = stringResource(R.string.statistics_yearly_goal_label),
+                        current = analytics.yearlyTotal,
+                        limit = goal
+                    )
                 }
             }
             item(key = "monthly") {

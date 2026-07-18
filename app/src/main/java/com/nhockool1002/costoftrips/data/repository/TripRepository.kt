@@ -50,6 +50,37 @@ class TripRepository(
 
     suspend fun deleteExpense(expense: Expense) = expenseDao.delete(expense)
 
+    suspend fun duplicateExpense(expense: Expense, splitMemberIds: List<Long>): Long =
+        addExpense(
+            expense.copy(id = 0, date = System.currentTimeMillis(), sortOrder = 0),
+            splitMemberIds
+        )
+
+    suspend fun duplicateTrip(tripId: Long, newName: String): Long {
+        val original = tripDao.getTrip(tripId) ?: return -1
+        val newTripId = tripDao.insert(
+            original.copy(id = 0, name = newName, createdAt = System.currentTimeMillis(), sortOrder = 0)
+        )
+        val memberIdMap = tripMemberDao.getMembersForTrip(tripId).associate { member ->
+            member.id to tripMemberDao.insert(member.copy(id = 0, tripId = newTripId))
+        }
+        val splitsByExpenseId = expenseSplitDao.getSplitsForTrip(tripId).groupBy { it.expenseId }
+        expenseDao.getExpensesForTrip(tripId).forEach { expense ->
+            val newExpenseId = expenseDao.insert(
+                expense.copy(
+                    id = 0,
+                    tripId = newTripId,
+                    paidByMemberId = expense.paidByMemberId?.let { memberIdMap[it] }
+                )
+            )
+            val splitMemberIds = splitsByExpenseId[expense.id].orEmpty().mapNotNull { memberIdMap[it.memberId] }
+            if (splitMemberIds.isNotEmpty()) {
+                expenseSplitDao.insertAll(splitMemberIds.map { ExpenseSplitMember(newExpenseId, it) })
+            }
+        }
+        return newTripId
+    }
+
     suspend fun addMember(member: TripMember): Long = tripMemberDao.insert(member)
 
     suspend fun deleteMember(member: TripMember) = tripMemberDao.deleteAndClear(member)

@@ -1,14 +1,17 @@
 package com.nhockool1002.costoftrips
 
 import android.app.Application
+import androidx.glance.appwidget.updateAll
 import com.nhockool1002.costoftrips.data.local.AppDatabase
 import com.nhockool1002.costoftrips.data.preferences.UserPreferencesRepository
 import com.nhockool1002.costoftrips.data.repository.TripRepository
 import com.nhockool1002.costoftrips.notification.NotificationHelper
 import com.nhockool1002.costoftrips.notification.ReminderScheduler
+import com.nhockool1002.costoftrips.widget.CostOfTripsWidget
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -40,6 +43,17 @@ class CostOfTripsApp : Application() {
             if (userPreferencesRepository.reminderEnabled.first()) {
                 val hours = userPreferencesRepository.reminderIntervalHours.first()
                 ReminderScheduler.schedule(this@CostOfTripsApp, hours)
+            }
+        }
+
+        // Keeps the home screen widget in sync with every trip/expense change
+        // (add, edit, delete, duplicate, import) without threading a refresh
+        // call through each call site that mutates data.
+        applicationScope.launch {
+            combine(tripRepository.observeTrips(), tripRepository.observeAllExpenses()) { trips, expenses ->
+                trips to expenses
+            }.collect {
+                CostOfTripsWidget().updateAll(this@CostOfTripsApp)
             }
         }
     }

@@ -69,6 +69,11 @@ class TripDetailViewModel(
         viewModelScope.launch { repository.deleteExpense(expense) }
     }
 
+    fun duplicateExpense(expense: Expense) {
+        val splitMemberIds = uiState.value.splitMemberIdsByExpenseId[expense.id].orEmpty()
+        viewModelScope.launch { repository.duplicateExpense(expense, splitMemberIds) }
+    }
+
     fun reorderExpenses(orderedExpenseIds: List<Long>) {
         viewModelScope.launch { repository.reorderExpenses(orderedExpenseIds) }
     }

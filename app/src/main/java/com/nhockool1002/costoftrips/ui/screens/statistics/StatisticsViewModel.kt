@@ -3,6 +3,7 @@ package com.nhockool1002.costoftrips.ui.screens.statistics
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nhockool1002.costoftrips.data.local.entity.ExpenseCategory
+import com.nhockool1002.costoftrips.data.preferences.UserPreferencesRepository
 import com.nhockool1002.costoftrips.data.repository.TripRepository
 import com.nhockool1002.costoftrips.ui.screens.triplist.SpendingAnalytics
 import com.nhockool1002.costoftrips.ui.screens.triplist.TripWithTotal
@@ -24,8 +25,15 @@ data class StatisticsUiState(
 )
 
 class StatisticsViewModel(
-    private val repository: TripRepository
+    private val repository: TripRepository,
+    preferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
+
+    val monthlyGoal: StateFlow<Double?> = preferencesRepository.monthlyGoal
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val yearlyGoal: StateFlow<Double?> = preferencesRepository.yearlyGoal
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     val uiState: StateFlow<StatisticsUiState> = repository.observeTrips()
         .combine(repository.observeAllExpenses()) { trips, expenses ->
