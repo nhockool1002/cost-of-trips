@@ -1,6 +1,7 @@
 package com.nhockool1002.costoftrips.ui.screens.settings
 
 import android.Manifest
+import android.app.KeyguardManager
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -11,7 +12,6 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.biometric.BiometricManager
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -232,11 +232,14 @@ fun SettingsScreen(onBack: () -> Unit, onAboutClick: () -> Unit) {
             }
 
             SettingsSection(icon = "🔒", title = stringResource(R.string.settings_applock_label)) {
-                val biometricManager = remember { BiometricManager.from(context) }
+                // BiometricManager.canAuthenticate(BIOMETRIC_STRONG or DEVICE_CREDENTIAL) is only
+                // reliable from API 30 onward; below that it can misreport a device with a plain
+                // PIN/pattern/password as having no usable authenticator at all. KeyguardManager's
+                // isDeviceSecure() is the version-safe way (API 23+) to detect any screen lock,
+                // and BiometricPrompt's own authenticate() call already handles the device-credential
+                // fallback correctly across API levels, so this check only needs to gate the toggle.
                 val canAuthenticate = remember {
-                    biometricManager.canAuthenticate(
-                        BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL
-                    ) == BiometricManager.BIOMETRIC_SUCCESS
+                    context.getSystemService(KeyguardManager::class.java)?.isDeviceSecure == true
                 }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
