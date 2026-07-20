@@ -86,9 +86,9 @@ fun CuteTextField(
     textStyle: TextStyle? = null,
     onClick: (() -> Unit)? = null
 ) {
-    val shape = RoundedCornerShape(20.dp)
+    val shape = RoundedCornerShape(14.dp)
     val badge: @Composable () -> Unit = {
-        EmojiBadge(emoji = emoji, containerColor = emojiContainerColor, size = 36.dp)
+        EmojiBadge(emoji = emoji, containerColor = emojiContainerColor, size = 28.dp)
     }
     if (onClick != null) {
         OutlinedTextField(

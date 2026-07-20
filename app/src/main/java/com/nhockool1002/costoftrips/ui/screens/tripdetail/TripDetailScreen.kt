@@ -30,8 +30,8 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
@@ -180,11 +180,9 @@ fun TripDetailScreen(
             )
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                text = { Text(stringResource(R.string.trip_detail_add_expense)) },
-                icon = { Icon(TablerIcons.Plus, contentDescription = null) },
-                onClick = onAddExpenseClick
-            )
+            FloatingActionButton(onClick = onAddExpenseClick) {
+                Icon(TablerIcons.Plus, contentDescription = stringResource(R.string.trip_detail_add_expense))
+            }
         }
     ) { padding ->
         LazyColumn(
@@ -192,7 +190,7 @@ fun TripDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(20.dp),
+            contentPadding = PaddingValues(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 100.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             item(key = "stat-card") {

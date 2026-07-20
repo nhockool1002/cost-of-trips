@@ -131,7 +131,7 @@ fun AddExpenseScreen(
                 supportingText = {
                     if (showError) Text(stringResource(R.string.add_expense_amount_required))
                 },
-                textStyle = MaterialTheme.typography.headlineMedium,
+                textStyle = MaterialTheme.typography.titleLarge,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 visualTransformation = CurrencyAmountVisualTransformation(currency),
                 modifier = Modifier.fillMaxWidth()
