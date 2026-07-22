@@ -58,7 +58,7 @@ Thực hiện bởi **Dev1002 © 2026**.
 
 ## Build
 
-Yêu cầu Android SDK (compileSdk 35) và JDK 17.
+Yêu cầu Android SDK (compileSdk 36) và JDK 17.
 
 ```bash
 ./gradlew assembleDebug
