@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace = "com.nhockool1002.costoftrips"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.nhockool1002.costoftrips"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 13
         versionName = "1.0.0.a11"
 
